@@ -1,0 +1,1432 @@
+{
+  "info": {
+    "name": "Trackpro API",
+    "description": "Track-pro livestock API: farmers, veterinarians (doctors), animals, health records, tracking.\n\nImport with `Trackpro.local.postman_environment.json`.\n\nRoles: `farmer` | `doctor` | `admin`\n• Farmers: signup → verify email → login → manage animals & tracking\n• Doctors: signup/doctor → verify → complete profile → admin approves → login/doctor\n• Upload: farmers → userFileUrls; doctors → doctorProfile.documentUrls; use attachTo=none to skip DB\n\nRun Sign Up + Login requests first; tests auto-set {{accessToken}}, {{farmerId}}, {{doctorId}}, {{animalId}}.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "accessToken",
+      "value": ""
+    },
+    {
+      "key": "farmerId",
+      "value": ""
+    },
+    {
+      "key": "doctorId",
+      "value": ""
+    },
+    {
+      "key": "animalId",
+      "value": ""
+    },
+    {
+      "key": "healthRecordId",
+      "value": ""
+    },
+    {
+      "key": "uploadUrl",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Root",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": []
+            }
+          }
+        },
+        {
+          "name": "Health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Doctors (Public)",
+      "item": [
+        {
+          "name": "List Doctors",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/doctors?page=1&limit=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "doctors"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Public directory of approved veterinarians."
+          }
+        },
+        {
+          "name": "Get Doctor by Id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/doctors/{{doctorId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "doctors",
+                "{{doctorId}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Sign Up Farmer",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/signup",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "signup"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Farmer\",\n  \"email\": \"farmer@example.com\",\n  \"password\": \"password123\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": "const j = pm.response.json();\nif (j.accessToken) {\n  pm.environment.set('accessToken', j.accessToken);\n  pm.collectionVariables.set('accessToken', j.accessToken);\n}\nif (j.user && j.user.id) {\n  if (j.user.role === 'farmer') {\n    pm.environment.set('farmerId', j.user.id);\n    pm.collectionVariables.set('farmerId', j.user.id);\n  }\n  if (j.user.role === 'doctor') {\n    pm.environment.set('doctorId', j.user.id);\n    pm.collectionVariables.set('doctorId', j.user.id);\n  }\n}"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Sign Up Doctor",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/signup/doctor",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "signup",
+                "doctor"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Dr Smith\",\n  \"email\": \"doctor@example.com\",\n  \"password\": \"password123\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": "const j = pm.response.json();\nif (j.accessToken) {\n  pm.environment.set('accessToken', j.accessToken);\n  pm.collectionVariables.set('accessToken', j.accessToken);\n}\nif (j.user && j.user.id) {\n  if (j.user.role === 'farmer') {\n    pm.environment.set('farmerId', j.user.id);\n    pm.collectionVariables.set('farmerId', j.user.id);\n  }\n  if (j.user.role === 'doctor') {\n    pm.environment.set('doctorId', j.user.id);\n    pm.collectionVariables.set('doctorId', j.user.id);\n  }\n}"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Sign Up Admin",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/signup/admin",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "signup",
+                "admin"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Admin User\",\n  \"email\": \"admin@example.com\",\n  \"password\": \"password123\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": "const j = pm.response.json();\nif (j.accessToken) {\n  pm.environment.set('accessToken', j.accessToken);\n  pm.collectionVariables.set('accessToken', j.accessToken);\n}\nif (j.user && j.user.id) {\n  if (j.user.role === 'farmer') {\n    pm.environment.set('farmerId', j.user.id);\n    pm.collectionVariables.set('farmerId', j.user.id);\n  }\n  if (j.user.role === 'doctor') {\n    pm.environment.set('doctorId', j.user.id);\n    pm.collectionVariables.set('doctorId', j.user.id);\n  }\n}"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login Farmer",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Requires verified email for non-admin accounts.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"farmer@example.com\",\n  \"password\": \"password123\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": "const j = pm.response.json();\nif (j.accessToken) {\n  pm.environment.set('accessToken', j.accessToken);\n  pm.collectionVariables.set('accessToken', j.accessToken);\n}\nif (j.user && j.user.id) {\n  if (j.user.role === 'farmer') {\n    pm.environment.set('farmerId', j.user.id);\n    pm.collectionVariables.set('farmerId', j.user.id);\n  }\n  if (j.user.role === 'doctor') {\n    pm.environment.set('doctorId', j.user.id);\n    pm.collectionVariables.set('doctorId', j.user.id);\n  }\n}"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login Doctor",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/login/doctor",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login",
+                "doctor"
+              ]
+            },
+            "description": "403 if account is not role doctor.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"doctor@example.com\",\n  \"password\": \"password123\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": "const j = pm.response.json();\nif (j.accessToken) {\n  pm.environment.set('accessToken', j.accessToken);\n  pm.collectionVariables.set('accessToken', j.accessToken);\n}\nif (j.user && j.user.id) {\n  if (j.user.role === 'farmer') {\n    pm.environment.set('farmerId', j.user.id);\n    pm.collectionVariables.set('farmerId', j.user.id);\n  }\n  if (j.user.role === 'doctor') {\n    pm.environment.set('doctorId', j.user.id);\n    pm.collectionVariables.set('doctorId', j.user.id);\n  }\n}"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Verify Email",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/verify-email",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "verify-email"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"farmer@example.com\",\n  \"otp\": \"ABCD1234\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Request Verification Code",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/request-verification-code",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "request-verification-code"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"farmer@example.com\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Forgot Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/forgot-password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "forgot-password"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"farmer@example.com\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Reset Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/reset-password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "reset-password"
+              ]
+            },
+            "description": "Or use uid + reset from email link.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"reset-token-from-email\",\n  \"newPassword\": \"newpassword123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/logout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "logout"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Get Me",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "me"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get User by Id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/{{farmerId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{farmerId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "me"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Updated\",\n  \"phone\": \"+15551234567\",\n  \"farmName\": \"Green Valley Ranch\",\n  \"farmLocation\": \"Texas, USA\",\n  \"farmSizeHectares\": 120,\n  \"assignedDoctorId\": \"{{doctorId}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Update Settings",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/me/settings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "me",
+                "settings"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"emailNotifications\": true,\n  \"pushNotifications\": true,\n  \"healthAlerts\": true,\n  \"language\": \"en\",\n  \"timezone\": \"UTC\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/me/password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "me",
+                "password"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"password123\",\n  \"newPassword\": \"newpassword456\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Doctor Portal",
+      "item": [
+        {
+          "name": "Complete Profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/doctor/profile",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "doctor",
+                "profile"
+              ]
+            },
+            "description": "Doctor role only. Marks profile complete for directory listing.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clinicName\": \"Valley Veterinary Clinic\",\n  \"licenseNumber\": \"VET-2024-001\",\n  \"location\": \"Austin, TX\",\n  \"specialties\": [\n    \"cattle\",\n    \"goat\"\n  ],\n  \"speciesTreated\": [\n    \"cattle\",\n    \"sheep\",\n    \"goat\"\n  ],\n  \"bio\": \"Large animal practice serving central Texas.\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Animals",
+      "item": [
+        {
+          "name": "Create Animal",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/animals",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "animals"
+              ]
+            },
+            "description": "Farmer role only.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tagId\": \"EAR-001\",\n  \"name\": \"Bessie\",\n  \"species\": \"cattle\",\n  \"breed\": \"Angus\",\n  \"sex\": \"female\",\n  \"dateOfBirth\": \"2022-03-15\",\n  \"weightKg\": 450,\n  \"healthStatus\": \"healthy\",\n  \"pastureOrPen\": \"North Field\",\n  \"assignedDoctorId\": \"{{doctorId}}\",\n  \"notes\": \"Primary dairy cow\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": "const j = pm.response.json();\nconst id = j._id || j.id;\nif (id) {\n  pm.environment.set('animalId', id);\n  pm.collectionVariables.set('animalId', id);\n}"
+              }
+            }
+          ]
+        },
+        {
+          "name": "List Animals",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/animals?page=1&limit=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "animals"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Animal",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/animals/{{animalId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "animals",
+                "{{animalId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Animal",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/animals/{{animalId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "animals",
+                "{{animalId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"weightKg\": 455,\n  \"healthStatus\": \"healthy\",\n  \"assignedDoctorId\": \"{{doctorId}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Animal",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/animals/{{animalId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "animals",
+                "{{animalId}}"
+              ]
+            },
+            "description": "Farmer or admin."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Tracking",
+      "item": [
+        {
+          "name": "Log Tracking Event",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/tracking",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tracking"
+              ]
+            },
+            "description": "Farmer role. type: weight | location | feeding | movement | other",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"animalId\": \"{{animalId}}\",\n  \"recordedAt\": \"2026-05-17T12:00:00.000Z\",\n  \"type\": \"weight\",\n  \"weightKg\": 460,\n  \"location\": \"North Field\",\n  \"notes\": \"Weekly weigh-in\"\n}"
+            }
+          }
+        },
+        {
+          "name": "List Events for Animal",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/tracking/animal/{{animalId}}?page=1&limit=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tracking",
+                "animal",
+                "{{animalId}}"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Health Records",
+      "item": [
+        {
+          "name": "Create Health Record",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/health-records",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health-records"
+              ]
+            },
+            "description": "Doctor role. type: checkup | treatment | vaccination | emergency | surgery | other",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"animalId\": \"{{animalId}}\",\n  \"visitDate\": \"2026-05-17T12:00:00.000Z\",\n  \"type\": \"vaccination\",\n  \"diagnosis\": \"\",\n  \"treatment\": \"\",\n  \"vaccineName\": \"Brucellosis\",\n  \"medication\": \"\",\n  \"notes\": \"Annual vaccination\",\n  \"followUpDate\": \"2026-11-17T12:00:00.000Z\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": "const j = pm.response.json();\nconst id = j._id || j.id;\nif (id) {\n  pm.environment.set('healthRecordId', id);\n  pm.collectionVariables.set('healthRecordId', id);\n}"
+              }
+            }
+          ]
+        },
+        {
+          "name": "List My Records (Doctor)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/health-records?page=1&limit=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health-records"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Records for Animal",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/health-records/animal/{{animalId}}?page=1&limit=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health-records",
+                "animal",
+                "{{animalId}}"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Dashboard",
+      "item": [
+        {
+          "name": "My Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "dashboard",
+                "me"
+              ]
+            },
+            "description": "Farmer or doctor summary based on JWT role."
+          }
+        },
+        {
+          "name": "Farmer Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/farmer",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "dashboard",
+                "farmer"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Doctor Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/doctor",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "dashboard",
+                "doctor"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "Analytics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/analytics",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "analytics"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Farmers",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/farmers?page=1&limit=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "farmers"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Doctors",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/doctors?page=1&limit=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "doctors"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get User by Id",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/users/{{farmerId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "users",
+                "{{farmerId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update User State",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/users/{{farmerId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "users",
+                "{{farmerId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userState\": \"active\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Approve Doctor",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/doctors/{{doctorId}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "doctors",
+                "{{doctorId}}",
+                "status"
+              ]
+            },
+            "description": "status: pending_review | approved | declined | active | inactive",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"approved\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Create User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "users"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"New Farmer\",\n  \"email\": \"newfarmer@example.com\",\n  \"password\": \"password123\",\n  \"role\": \"farmer\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Upload",
+      "item": [
+        {
+          "name": "Get Resource (public)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/upload/resource?url={{uploadUrl}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "upload",
+                "resource"
+              ],
+              "query": [
+                {
+                  "key": "url",
+                  "value": "{{uploadUrl}}"
+                }
+              ]
+            },
+            "description": "Cloudinary metadata for a delivery URL."
+          }
+        },
+        {
+          "name": "Open URL (redirect)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/upload/open?url={{uploadUrl}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "upload",
+                "open"
+              ],
+              "query": [
+                {
+                  "key": "url",
+                  "value": "{{uploadUrl}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Stream (proxy)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/upload/stream?url={{uploadUrl}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "upload",
+                "stream"
+              ],
+              "query": [
+                {
+                  "key": "url",
+                  "value": "{{uploadUrl}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Upload Single File",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "",
+                  "description": "Select image or PDF"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/upload/single",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "upload",
+                "single"
+              ]
+            },
+            "description": "Multipart field `file`. Farmer → userFileUrls; doctor → doctorProfile.documentUrls. Query attachTo=none to skip DB."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = pm.response.json();",
+                  "const url = j.url || j.publicUrl || (j.files && j.files[0] && j.files[0].url);",
+                  "if (url) { pm.environment.set('uploadUrl', url); pm.collectionVariables.set('uploadUrl', url); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Upload Multiple Files",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "files",
+                  "type": "file",
+                  "src": "",
+                  "description": "Up to 10 files"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/upload/multiple",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "upload",
+                "multiple"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Upload",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/upload",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "upload"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"url\": \"{{uploadUrl}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Batch",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/upload/remove-batch",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "upload",
+                "remove-batch"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"urls\": [\n    \"{{uploadUrl}}\"\n  ]\n}"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

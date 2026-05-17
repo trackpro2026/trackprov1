@@ -1,0 +1,67 @@
+import { Test, TestingModule } from '@nestjs/testing';
+import { getModelToken } from '@nestjs/mongoose';
+import { AdminService } from './admin.service';
+import { UserService } from '../user/user.service';
+import { User } from '../user/entities/user.entity';
+import { Animal } from '../animal/entities/animal.entity';
+import { HealthRecord } from '../health-record/entities/health-record.entity';
+import { Role } from '../../common/decorators/roles.decorator';
+import { DoctorStatus } from '../user/entities/doctor-profile.schema';
+
+describe('AdminService', () => {
+  let service: AdminService;
+  let userService: UserService;
+
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        AdminService,
+        {
+          provide: UserService,
+          useValue: {
+            findAll: jest.fn().mockResolvedValue({ items: [], meta: {} }),
+            findById: jest.fn(),
+            create: jest.fn(),
+            updateUserState: jest.fn(),
+            updateDoctorStatus: jest.fn(),
+          },
+        },
+        {
+          provide: getModelToken(User.name),
+          useValue: { countDocuments: jest.fn().mockResolvedValue(5) },
+        },
+        {
+          provide: getModelToken(Animal.name),
+          useValue: { countDocuments: jest.fn().mockResolvedValue(10) },
+        },
+        {
+          provide: getModelToken(HealthRecord.name),
+          useValue: { countDocuments: jest.fn().mockResolvedValue(2) },
+        },
+      ],
+    }).compile();
+
+    service = module.get<AdminService>(AdminService);
+    userService = module.get<UserService>(UserService);
+  });
+
+  it('listFarmers filters by role', async () => {
+    await service.listFarmers({ page: 1, limit: 10 });
+    expect(userService.findAll).toHaveBeenCalledWith({ page: 1, limit: 10 }, Role.Farmer);
+  });
+
+  it('getAnalytics aggregates counts', async () => {
+    const analytics = await service.getAnalytics();
+    expect(analytics).toEqual({ farmers: 5, doctors: 5, animals: 10, healthRecords: 2 });
+  });
+
+  it('updateDoctorStatus delegates', async () => {
+    await service.updateDoctorStatus('d1', DoctorStatus.Approved);
+    expect(userService.updateDoctorStatus).toHaveBeenCalledWith('d1', DoctorStatus.Approved);
+  });
+
+  it('updateUserByAdmin updates user state', async () => {
+    await service.updateUserByAdmin('u1', { userState: 'active' as never });
+    expect(userService.updateUserState).toHaveBeenCalledWith('u1', 'active');
+  });
+});

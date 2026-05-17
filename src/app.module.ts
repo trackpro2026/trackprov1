@@ -1,0 +1,49 @@
+import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { MongooseModule } from '@nestjs/mongoose';
+import { APP_GUARD } from '@nestjs/core';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { AuthModule } from './modules/auth/auth.module';
+import { UserModule } from './modules/user/user.module';
+import { DoctorModule } from './modules/doctor/doctor.module';
+import { AnimalModule } from './modules/animal/animal.module';
+import { HealthRecordModule } from './modules/health-record/health-record.module';
+import { TrackingModule } from './modules/tracking/tracking.module';
+import { AdminModule } from './modules/admin/admin.module';
+import { DashboardModule } from './modules/dashboard/dashboard.module';
+import { UploadModule } from './modules/upload/upload.module';
+import { EncryptionModule } from './core/encryption/encryption.module';
+import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
+import { createThrottlerConfig } from './common/throttler/throttler.config';
+import { HealthController } from './health.controller';
+
+@Module({
+  imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
+    ThrottlerModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => createThrottlerConfig(config),
+    }),
+    MongooseModule.forRoot(process.env.MONGODB_URI || 'mongodb://localhost:27017/trackpro', {
+      maxPoolSize: 10,
+      minPoolSize: 5,
+    }),
+    EncryptionModule,
+    AuthModule,
+    UserModule,
+    DoctorModule,
+    AnimalModule,
+    HealthRecordModule,
+    TrackingModule,
+    UploadModule,
+    AdminModule,
+    DashboardModule,
+  ],
+  controllers: [HealthController],
+  providers: [
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
+    { provide: APP_GUARD, useClass: JwtAuthGuard },
+  ],
+})
+export class AppModule {}
