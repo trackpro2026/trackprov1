@@ -2,10 +2,9 @@ import { join } from 'node:path';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import * as cookieParser from 'cookie-parser';
 import { ValidationPipe } from '../pipes/validation.pipe';
-import { corsOriginDelegate } from '../cors/cors.config';
+import { getCorsOptions } from '../cors/cors.config';
 import { setupSwagger } from '../swagger/swagger.setup';
 import { API_PREFIX, API_PREFIX_EXCLUDES } from '../constants/api.constants';
-
 export type ConfigureAppOptions = {
   swagger?: boolean;
 };
@@ -18,10 +17,7 @@ export function configureApp(
   app.useStaticAssets(join(process.cwd(), 'public'), { index: false });
   app.use(cookieParser());
   app.useGlobalPipes(new ValidationPipe());
-  app.enableCors({
-    origin: corsOriginDelegate,
-    credentials: true,
-  });
+  app.enableCors(getCorsOptions());
   app.setGlobalPrefix(API_PREFIX, { exclude: API_PREFIX_EXCLUDES });
 
   const swaggerEnabled =

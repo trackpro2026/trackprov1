@@ -40,6 +40,18 @@ Swagger UI: `http://localhost:3000/api/docs`
 
 API base path: `http://localhost:3000/api/v1`
 
+## Mobile & web
+
+| Client | How to authenticate |
+|--------|---------------------|
+| **Mobile** | `Authorization: Bearer <accessToken>` from login — no CSRF, no cookies |
+| **Web (SPA)** | Same Bearer header (recommended) |
+| **Web (cookies)** | `credentials: 'include'` + optional CSRF when `CSRF_ENABLED=true` |
+
+- **CORS:** `CORS_UNIVERSAL=true` in `.env` allows any origin (default).
+- **CSRF:** `GET /api/v1/auth/csrf` returns `{ csrfToken }` for cookie-based web only. Default `CSRF_ENABLED=false`.
+- Optional header: `X-Client-Platform: mobile` or `web`.
+
 ## Postman
 
 Import:

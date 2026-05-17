@@ -1,7 +1,9 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { APP_GUARD } from '@nestjs/core';
+import { CsrfModule } from './common/csrf/csrf.module';
+import { CsrfMiddleware } from './common/csrf/csrf.middleware';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { AuthModule } from './modules/auth/auth.module';
 import { UserModule } from './modules/user/user.module';
@@ -30,6 +32,7 @@ import { HealthController } from './health.controller';
       minPoolSize: 5,
     }),
     EncryptionModule,
+    CsrfModule,
     AuthModule,
     UserModule,
     DoctorModule,
@@ -46,4 +49,8 @@ import { HealthController } from './health.controller';
     { provide: APP_GUARD, useClass: JwtAuthGuard },
   ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer): void {
+    consumer.apply(CsrfMiddleware).forRoutes('*');
+  }
+}

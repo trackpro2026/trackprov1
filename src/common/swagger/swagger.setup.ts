@@ -16,11 +16,30 @@ All JSON endpoints use prefix **\`/${API_PREFIX}\`** unless noted (health & docs
 | **doctor** | Veterinarian — health records, assigned animals, public directory |
 | **admin** | Approves vets, lists users, platform analytics |
 
+## Mobile & web clients
+
+| Client | Auth | CSRF |
+|--------|------|------|
+| **Mobile** (React Native, Flutter, etc.) | \`Authorization: Bearer <accessToken>\` from login response | **Not required** |
+| **Web SPA** (recommended) | Same Bearer header | **Not required** |
+| **Web** (httpOnly cookie session) | Cookie \`access_token\` + \`credentials: 'include'\` | Required when \`CSRF_ENABLED=true\` |
+
+### Web with cookies + CSRF
+1. \`GET /${API_PREFIX}/auth/csrf\` → \`{ csrfToken }\`
+2. Send header \`X-CSRF-Token: <csrfToken>\` on POST/PATCH/DELETE (with \`credentials: 'include'\`)
+3. \`POST /${API_PREFIX}/auth/login\` — sets auth cookie
+4. Subsequent mutating requests: Bearer **or** cookie + CSRF header
+
+### CORS
+\`CORS_UNIVERSAL=true\` (default) allows any browser origin. Set \`CORS_UNIVERSAL=false\` and \`CORS_ORIGINS=\` for a whitelist in production.
+
+Optional header: \`X-Client-Platform: mobile\` or \`web\`.
+
 ## Authentication
 1. \`POST /${API_PREFIX}/auth/signup\` (farmer) or \`signup/doctor\` / \`signup/admin\`
 2. \`POST /${API_PREFIX}/auth/verify-email\` with OTP (except admin)
 3. \`POST /${API_PREFIX}/auth/login\` → copy \`accessToken\`
-4. Click **Authorize** above and paste the JWT
+4. Click **Authorize** above and paste the JWT (mobile & web)
 
 ## CRUD summary
 
@@ -71,10 +90,21 @@ export function setupSwagger(app: INestApplication): void {
         scheme: 'bearer',
         bearerFormat: 'JWT',
         name: 'Authorization',
-        description: 'Paste JWT from login / signup response',
+        description:
+          'Primary auth for mobile and web. Value from login/signup `accessToken`.',
         in: 'header',
       },
       SWAGGER_BEARER,
+    )
+    .addApiKey(
+      {
+        type: 'apiKey',
+        name: 'X-CSRF-Token',
+        in: 'header',
+        description:
+          'Only when CSRF_ENABLED=true and using cookie sessions (not Bearer). Get token from GET /auth/csrf.',
+      },
+      'csrf-token',
     )
     .build();
 

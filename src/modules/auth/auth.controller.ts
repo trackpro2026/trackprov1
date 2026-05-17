@@ -12,8 +12,10 @@ import {
 import type { Request, Response } from 'express';
 import { ConfigService } from '@nestjs/config';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { jwtExpiresInToMs } from '../../common/utils/jwt-expiry.util';
+import { randomBytes } from 'crypto';
 import { AuthService } from './auth.service';
+import { buildAppCookieOptions, jwtCookieName } from '../../common/http/cookie-options';
+import { CSRF_COOKIE_NAME, isCsrfEnabled } from '../../common/csrf/csrf.config';
 import { CreateUserDto } from '../user/dto/create-user.dto';
 import { LoginDto } from '../user/dto/login.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
@@ -30,50 +32,15 @@ export class AuthController {
     private readonly configService: ConfigService,
   ) {}
 
-  private authCookieName(): string {
-    return this.configService.get<string>('JWT_COOKIE_NAME')?.trim() || 'access_token';
-  }
-
-  private authCookieBase() {
-    const expiresIn = this.configService.get<string>('JWT_EXPIRES_IN') || '7d';
-    const maxAgeMs = jwtExpiresInToMs(expiresIn);
-    const sameSiteRaw = (
-      this.configService.get<string>('JWT_COOKIE_SAMESITE') || 'lax'
-    ).toLowerCase();
-    const sameSite = (
-      ['lax', 'strict', 'none'].includes(sameSiteRaw) ? sameSiteRaw : 'lax'
-    ) as 'lax' | 'strict' | 'none';
-    const secureEnv = this.configService.get<string>('JWT_COOKIE_SECURE');
-    let secure =
-      secureEnv === 'true'
-        ? true
-        : secureEnv === 'false'
-          ? false
-          : this.configService.get<string>('NODE_ENV') === 'production';
-    if (sameSite === 'none' && !secure) {
-      secure = true;
-    }
-    const domain = this.configService.get<string>('JWT_COOKIE_DOMAIN')?.trim();
-    return {
-      maxAge: maxAgeMs,
-      httpOnly: true,
-      secure,
-      sameSite,
-      path: '/',
-      ...(domain ? { domain } : {}),
-    };
-  }
-
   private setAuthCookie(res: Response, accessToken: string) {
-    const name = this.authCookieName();
-    res.cookie(name, accessToken, {
-      ...this.authCookieBase(),
+    res.cookie(jwtCookieName(this.configService), accessToken, {
+      ...buildAppCookieOptions(this.configService),
     });
   }
 
   private clearAuthCookie(res: Response) {
-    const name = this.authCookieName();
-    const { maxAge: _maxAge, ...opts } = this.authCookieBase();
+    const name = jwtCookieName(this.configService);
+    const { maxAge: _maxAge, ...opts } = buildAppCookieOptions(this.configService);
     res.clearCookie(name, opts);
   }
 
@@ -138,6 +105,30 @@ export class AuthController {
     });
     this.setAuthCookie(res, result.accessToken);
     return result;
+  }
+
+  @Public()
+  @Get('csrf')
+  @ApiOperation({
+    summary: 'Get CSRF token (web cookie sessions)',
+    description:
+      '**Web (cookie auth):** Call before login/signup when `CSRF_ENABLED=true`. ' +
+      'Returns `csrfToken` and sets the `csrf_token` cookie. Send the same value in header `X-CSRF-Token` on mutating requests.\n\n' +
+      '**Mobile:** Use `Authorization: Bearer <accessToken>` from login — CSRF is not required.',
+  })
+  getCsrf(@Res({ passthrough: true }) res: Response) {
+    const token = randomBytes(32).toString('hex');
+    res.cookie(CSRF_COOKIE_NAME, token, {
+      ...buildAppCookieOptions(this.configService, {
+        maxAge: 60 * 60 * 1000,
+        httpOnly: true,
+      }),
+    });
+    return {
+      csrfToken: token,
+      csrfEnabled: isCsrfEnabled(),
+      headerName: 'X-CSRF-Token',
+    };
   }
 
   @Public()

@@ -144,6 +144,11 @@ const collection = {
     {
       name: 'Auth',
       item: [
+        req('Get CSRF Token', 'GET', '/auth/csrf', {
+          public: true,
+          description:
+            'Web cookie sessions only (CSRF_ENABLED=true). Sets csrf_token cookie; send csrfToken as X-CSRF-Token header.',
+        }),
         req('Sign Up Farmer', 'POST', '/auth/signup', {
           public: true,
           body: { name: 'John Farmer', email: 'farmer@example.com', password: 'password123' },
