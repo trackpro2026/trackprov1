@@ -12,7 +12,7 @@ export function getMailgen(): Mailgen {
     product: {
       name: 'Trackpro',
       link: process.env.FRONTEND_URL || 'https://trackpro-web.vercel.app',
-      ...(logoUrl ? { logo: logoUrl, logoHeight: '80px' } : {}),
+      ...(logoUrl ? { logo: logoUrl, logoHeight: '140px' } : {}),
       copyright: 'Trackpro — Livestock Tracking',
     },
   });
