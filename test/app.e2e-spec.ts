@@ -1,14 +1,15 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { MongoMemoryServer } from 'mongodb-memory-server';
-import { ValidationPipe } from '../src/common/pipes/validation.pipe';
+import { NestExpressApplication } from '@nestjs/platform-express';
+import { configureApp } from '../src/common/bootstrap/configure-app';
 import { EmailService } from '../src/integrations/email/email.service';
 import { emailServiceMock } from './email-mock';
 import { activateUser, signupAndLogin, TEST_PASSWORD } from './test-helpers';
+import { api } from './api-prefix';
 
 describe('App (e2e)', () => {
-  let app: INestApplication;
+  let app: NestExpressApplication;
   let mongod: MongoMemoryServer;
 
   beforeAll(async () => {
@@ -26,8 +27,8 @@ describe('App (e2e)', () => {
       .useValue(emailServiceMock)
       .compile();
 
-    app = moduleFixture.createNestApplication();
-    app.useGlobalPipes(new ValidationPipe());
+    app = moduleFixture.createNestApplication<NestExpressApplication>();
+    configureApp(app, { swagger: false });
     await app.init();
   }, 120000);
 
@@ -52,7 +53,7 @@ describe('App (e2e)', () => {
 
   it('/doctors (GET) - public list', () => {
     return request(app.getHttpServer())
-      .get('/doctors')
+      .get(api('/doctors'))
       .expect(200)
       .expect((res) => {
         expect(res.body).toHaveProperty('items');
@@ -62,7 +63,7 @@ describe('App (e2e)', () => {
 
   it('/auth/signup (POST) - farmer registration', async () => {
     const res = await request(app.getHttpServer())
-      .post('/auth/signup')
+      .post(api('/auth/signup'))
       .send({ name: 'E2E Farmer', email: 'e2e@example.com', password: TEST_PASSWORD })
       .expect(201);
     expect(res.body).toHaveProperty('accessToken');
@@ -73,19 +74,19 @@ describe('App (e2e)', () => {
   it('/auth/login (POST) - after email verified', async () => {
     const email = 'login-e2e@example.com';
     await request(app.getHttpServer())
-      .post('/auth/signup')
+      .post(api('/auth/signup'))
       .send({ name: 'Login Farmer', email, password: TEST_PASSWORD })
       .expect(201);
     await activateUser(app, email);
     const res = await request(app.getHttpServer())
-      .post('/auth/login')
+      .post(api('/auth/login'))
       .send({ email, password: TEST_PASSWORD })
       .expect(201);
     expect(res.body).toHaveProperty('accessToken');
   });
 
   it('/users/me (GET) - requires auth', () => {
-    return request(app.getHttpServer()).get('/users/me').expect(401);
+    return request(app.getHttpServer()).get(api('/users/me')).expect(401);
   });
 
   it('/users/me (GET) - with token', async () => {
@@ -94,7 +95,7 @@ describe('App (e2e)', () => {
       email: 'profile-e2e@example.com',
     });
     const res = await request(app.getHttpServer())
-      .get('/users/me')
+      .get(api('/users/me'))
       .set('Authorization', `Bearer ${token}`)
       .expect(200);
     expect(res.body.email).toBe('profile-e2e@example.com');
@@ -106,7 +107,7 @@ describe('App (e2e)', () => {
       email: 'animal-e2e@example.com',
     });
     const res = await request(app.getHttpServer())
-      .post('/animals')
+      .post(api('/animals'))
       .set('Authorization', `Bearer ${token}`)
       .send({
         tagId: 'TAG-001',
@@ -122,12 +123,12 @@ describe('App (e2e)', () => {
   it('/auth/login/doctor (POST) - veterinarian portal', async () => {
     const email = 'doctor-portal@example.com';
     await request(app.getHttpServer())
-      .post('/auth/signup/doctor')
+      .post(api('/auth/signup/doctor'))
       .send({ name: 'Dr Portal', email, password: TEST_PASSWORD })
       .expect(201);
     await activateUser(app, email, { userState: 'active' as never });
     const res = await request(app.getHttpServer())
-      .post('/auth/login/doctor')
+      .post(api('/auth/login/doctor'))
       .send({ email, password: TEST_PASSWORD })
       .expect(201);
     expect(res.body.user.role).toBe('doctor');
@@ -140,7 +141,7 @@ describe('App (e2e)', () => {
       role: 'admin',
     });
     const res = await request(app.getHttpServer())
-      .get('/admin/analytics')
+      .get(api('/admin/analytics'))
       .set('Authorization', `Bearer ${adminToken}`)
       .expect(200);
     expect(res.body).toEqual(

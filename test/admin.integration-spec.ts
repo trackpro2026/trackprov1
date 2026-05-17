@@ -1,14 +1,15 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { MongoMemoryServer } from 'mongodb-memory-server';
-import { ValidationPipe } from '../src/common/pipes/validation.pipe';
+import { NestExpressApplication } from '@nestjs/platform-express';
+import { configureApp } from '../src/common/bootstrap/configure-app';
 import { EmailService } from '../src/integrations/email/email.service';
 import { activateUser, signupAndLogin, TEST_PASSWORD } from './test-helpers';
 import { DoctorStatus } from '../src/modules/user/entities/doctor-profile.schema';
+import { api } from './api-prefix';
 
 describe('Admin (integration)', () => {
-  let app: INestApplication;
+  let app: NestExpressApplication;
   let mongod: MongoMemoryServer;
 
   beforeAll(async () => {
@@ -32,8 +33,8 @@ describe('Admin (integration)', () => {
       })
       .compile();
 
-    app = moduleFixture.createNestApplication();
-    app.useGlobalPipes(new ValidationPipe());
+    app = moduleFixture.createNestApplication<NestExpressApplication>();
+    configureApp(app, { swagger: false });
     await app.init();
   }, 120000);
 
@@ -50,7 +51,7 @@ describe('Admin (integration)', () => {
     });
 
     const analytics = await request(app.getHttpServer())
-      .get('/admin/analytics')
+      .get(api('/admin/analytics'))
       .set('Authorization', `Bearer ${adminToken}`)
       .expect(200);
     expect(analytics.body).toEqual(
@@ -64,13 +65,13 @@ describe('Admin (integration)', () => {
 
     const doctorEmail = 'doctor-approve@example.com';
     const doctorSignup = await request(app.getHttpServer())
-      .post('/auth/signup/doctor')
+      .post(api('/auth/signup/doctor'))
       .send({ name: 'Pending Vet', email: doctorEmail, password: TEST_PASSWORD })
       .expect(201);
     const doctorId = doctorSignup.body.user.id;
 
     await request(app.getHttpServer())
-      .patch(`/admin/doctors/${doctorId}/status`)
+      .patch(api(`/admin/doctors/${doctorId}/status`))
       .set('Authorization', `Bearer ${adminToken}`)
       .send({ status: DoctorStatus.Approved })
       .expect(200);
@@ -78,13 +79,13 @@ describe('Admin (integration)', () => {
     await activateUser(app, doctorEmail, { userState: 'active' as never });
 
     const doctors = await request(app.getHttpServer())
-      .get('/admin/doctors')
+      .get(api('/admin/doctors'))
       .set('Authorization', `Bearer ${adminToken}`)
       .expect(200);
     expect(doctors.body.items.length).toBeGreaterThanOrEqual(1);
 
     const farmers = await request(app.getHttpServer())
-      .get('/admin/farmers')
+      .get(api('/admin/farmers'))
       .set('Authorization', `Bearer ${adminToken}`)
       .expect(200);
     expect(farmers.body).toHaveProperty('items');

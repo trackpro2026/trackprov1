@@ -9,9 +9,16 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiParam,
+  ApiQuery,
+  ApiTags,
+} from '@nestjs/swagger';
 import { AnimalService } from './animal.service';
 import { SWAGGER_BEARER } from '../../common/swagger/swagger.setup';
+import { ANIMALS_TAG } from '../../common/swagger/api-descriptions';
 import { CreateAnimalDto } from './dto/create-animal.dto';
 import { UpdateAnimalDto } from './dto/update-animal.dto';
 import { PaginationDto } from '../../common/dto/pagination.dto';
@@ -30,11 +37,22 @@ export class AnimalController {
   @Post()
   @UseGuards(RolesGuard)
   @Roles(Role.Farmer)
+  @ApiOperation({
+    summary: 'Create animal',
+    description: `${ANIMALS_TAG}\n\n**Create** — Register a new animal on your farm. \`tagId\` must be unique per farmer.`,
+  })
   create(@Body() dto: CreateAnimalDto, @CurrentUser('id') farmerId: string) {
     return this.animalService.create(dto, farmerId);
   }
 
   @Get()
+  @ApiOperation({
+    summary: 'List animals',
+    description:
+      '**Read (list)** — Paginated herd. Farmers see their animals; doctors see animals assigned to them; admins see all.',
+  })
+  @ApiQuery({ name: 'page', required: false, example: 1 })
+  @ApiQuery({ name: 'limit', required: false, example: 10 })
   findAll(@Query() pagination: PaginationDto, @CurrentUser() user: { id: string; role: Role }) {
     if (user.role === Role.Doctor) {
       return this.animalService.findForDoctor(user.id, pagination);
@@ -46,6 +64,11 @@ export class AnimalController {
   }
 
   @Get(':id')
+  @ApiOperation({
+    summary: 'Get animal by ID',
+    description: '**Read (one)** — Full animal record. Access enforced by role (owner farmer, assigned doctor, or admin).',
+  })
+  @ApiParam({ name: 'id', description: 'MongoDB animal _id' })
   findOne(
     @Param('id') id: string,
     @CurrentUser('id') userId: string,
@@ -55,6 +78,14 @@ export class AnimalController {
   }
 
   @Patch(':id')
+  @UseGuards(RolesGuard)
+  @Roles(Role.Farmer, Role.Doctor, Role.Admin)
+  @ApiOperation({
+    summary: 'Update animal',
+    description:
+      '**Update** — Partial update (name, weight, healthStatus, assignedDoctorId, pasture, etc.). Farmers update their herd; assigned vets may update clinical fields; admins can update any animal.',
+  })
+  @ApiParam({ name: 'id', description: 'MongoDB animal _id' })
   update(
     @Param('id') id: string,
     @Body() dto: UpdateAnimalDto,
@@ -67,6 +98,11 @@ export class AnimalController {
   @Delete(':id')
   @UseGuards(RolesGuard)
   @Roles(Role.Farmer, Role.Admin)
+  @ApiOperation({
+    summary: 'Delete animal',
+    description: '**Delete** — Permanently remove an animal record. Farmer (own herd) or admin only.',
+  })
+  @ApiParam({ name: 'id', description: 'MongoDB animal _id' })
   remove(
     @Param('id') id: string,
     @CurrentUser('id') userId: string,

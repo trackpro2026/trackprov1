@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Trackpro API",
-    "description": "Track-pro livestock API: farmers, veterinarians (doctors), animals, health records, tracking.\n\nImport with `Trackpro.local.postman_environment.json`.\n\nRoles: `farmer` | `doctor` | `admin`\n• Farmers: signup → verify email → login → manage animals & tracking\n• Doctors: signup/doctor → verify → complete profile → admin approves → login/doctor\n• Upload: farmers → userFileUrls; doctors → doctorProfile.documentUrls; use attachTo=none to skip DB\n\nRun Sign Up + Login requests first; tests auto-set {{accessToken}}, {{farmerId}}, {{doctorId}}, {{animalId}}.",
+    "description": "Track-pro livestock API: farmers, veterinarians (doctors), animals, health records, tracking.\n\nImport with `Trackpro.local.postman_environment.json`.\n\nRoles: `farmer` | `doctor` | `admin`\n• Farmers: signup → verify email → login → manage animals & tracking\n• Doctors: signup/doctor → verify → complete profile → admin approves → login/doctor\n• Upload: farmers → userFileUrls; doctors → doctorProfile.documentUrls; use attachTo=none to skip DB\n\nBase path: /api/v1. Health & Swagger stay at root. Run Sign Up + Login first; tests auto-set tokens and IDs.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -37,6 +37,10 @@
     },
     {
       "key": "healthRecordId",
+      "value": ""
+    },
+    {
+      "key": "trackingEventId",
       "value": ""
     },
     {
@@ -89,11 +93,13 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/doctors?page=1&limit=10",
+              "raw": "{{baseUrl}}/api/v1/doctors?page=1&limit=10",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
+                "api",
+                "v1",
                 "doctors"
               ],
               "query": [
@@ -116,11 +122,13 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/doctors/{{doctorId}}",
+              "raw": "{{baseUrl}}/api/v1/doctors/{{doctorId}}",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
+                "api",
+                "v1",
                 "doctors",
                 "{{doctorId}}"
               ]
@@ -143,11 +151,13 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/auth/signup",
+              "raw": "{{baseUrl}}/api/v1/auth/signup",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
+                "api",
+                "v1",
                 "auth",
                 "signup"
               ]
@@ -178,11 +188,13 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/auth/signup/doctor",
+              "raw": "{{baseUrl}}/api/v1/auth/signup/doctor",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
+                "api",
+                "v1",
                 "auth",
                 "signup",
                 "doctor"
@@ -214,11 +226,13 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/auth/signup/admin",
+              "raw": "{{baseUrl}}/api/v1/auth/signup/admin",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
+                "api",
+                "v1",
                 "auth",
                 "signup",
                 "admin"
@@ -250,11 +264,13 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/auth/login",
+              "raw": "{{baseUrl}}/api/v1/auth/login",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
+                "api",
+                "v1",
                 "auth",
                 "login"
               ]
@@ -286,11 +302,13 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/auth/login/doctor",
+              "raw": "{{baseUrl}}/api/v1/auth/login/doctor",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
+                "api",
+                "v1",
                 "auth",
                 "login",
                 "doctor"
@@ -323,11 +341,13 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/auth/verify-email",
+              "raw": "{{baseUrl}}/api/v1/auth/verify-email",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
+                "api",
+                "v1",
                 "auth",
                 "verify-email"
               ]
@@ -349,11 +369,13 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/auth/request-verification-code",
+              "raw": "{{baseUrl}}/api/v1/auth/request-verification-code",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
+                "api",
+                "v1",
                 "auth",
                 "request-verification-code"
               ]
@@ -375,11 +397,13 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/auth/forgot-password",
+              "raw": "{{baseUrl}}/api/v1/auth/forgot-password",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
+                "api",
+                "v1",
                 "auth",
                 "forgot-password"
               ]
@@ -401,11 +425,13 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/auth/reset-password",
+              "raw": "{{baseUrl}}/api/v1/auth/reset-password",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
+                "api",
+                "v1",
                 "auth",
                 "reset-password"
               ]
@@ -423,11 +449,13 @@
             "method": "POST",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/auth/logout",
+              "raw": "{{baseUrl}}/api/v1/auth/logout",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
+                "api",
+                "v1",
                 "auth",
                 "logout"
               ]
@@ -450,11 +478,13 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/users/me",
+              "raw": "{{baseUrl}}/api/v1/users/me",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
+                "api",
+                "v1",
                 "users",
                 "me"
               ]
@@ -467,11 +497,13 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/users/{{farmerId}}",
+              "raw": "{{baseUrl}}/api/v1/users/{{farmerId}}",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
+                "api",
+                "v1",
                 "users",
                 "{{farmerId}}"
               ]
@@ -493,11 +525,13 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/users/me",
+              "raw": "{{baseUrl}}/api/v1/users/me",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
+                "api",
+                "v1",
                 "users",
                 "me"
               ]
@@ -523,11 +557,13 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/users/me/settings",
+              "raw": "{{baseUrl}}/api/v1/users/me/settings",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
+                "api",
+                "v1",
                 "users",
                 "me",
                 "settings"
@@ -554,11 +590,13 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/users/me/password",
+              "raw": "{{baseUrl}}/api/v1/users/me/password",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
+                "api",
+                "v1",
                 "users",
                 "me",
                 "password"
@@ -590,11 +628,13 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/doctor/profile",
+              "raw": "{{baseUrl}}/api/v1/doctor/profile",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
+                "api",
+                "v1",
                 "doctor",
                 "profile"
               ]
@@ -626,11 +666,13 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/animals",
+              "raw": "{{baseUrl}}/api/v1/animals",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
+                "api",
+                "v1",
                 "animals"
               ]
             },
@@ -661,11 +703,13 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/animals?page=1&limit=10",
+              "raw": "{{baseUrl}}/api/v1/animals?page=1&limit=10",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
+                "api",
+                "v1",
                 "animals"
               ],
               "query": [
@@ -692,11 +736,13 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/animals/{{animalId}}",
+              "raw": "{{baseUrl}}/api/v1/animals/{{animalId}}",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
+                "api",
+                "v1",
                 "animals",
                 "{{animalId}}"
               ]
@@ -718,11 +764,13 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/animals/{{animalId}}",
+              "raw": "{{baseUrl}}/api/v1/animals/{{animalId}}",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
+                "api",
+                "v1",
                 "animals",
                 "{{animalId}}"
               ]
@@ -744,11 +792,13 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/animals/{{animalId}}",
+              "raw": "{{baseUrl}}/api/v1/animals/{{animalId}}",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
+                "api",
+                "v1",
                 "animals",
                 "{{animalId}}"
               ]
@@ -762,7 +812,7 @@
       "name": "Tracking",
       "item": [
         {
-          "name": "Log Tracking Event",
+          "name": "Create Tracking Event",
           "request": {
             "method": "POST",
             "header": [
@@ -776,18 +826,61 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/tracking",
+              "raw": "{{baseUrl}}/api/v1/tracking",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
+                "api",
+                "v1",
                 "tracking"
               ]
             },
-            "description": "Farmer role. type: weight | location | feeding | movement | other",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"animalId\": \"{{animalId}}\",\n  \"recordedAt\": \"2026-05-17T12:00:00.000Z\",\n  \"type\": \"weight\",\n  \"weightKg\": 460,\n  \"location\": \"North Field\",\n  \"notes\": \"Weekly weigh-in\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": "const j = pm.response.json();\nconst id = j._id || j.id;\nif (id) {\n  pm.environment.set('trackingEventId', id);\n  pm.collectionVariables.set('trackingEventId', id);\n}"
+              }
+            }
+          ]
+        },
+        {
+          "name": "List All Tracking Events",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/tracking?page=1&limit=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "tracking"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
             }
           }
         },
@@ -802,11 +895,13 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/tracking/animal/{{animalId}}?page=1&limit=10",
+              "raw": "{{baseUrl}}/api/v1/tracking/animal/{{animalId}}?page=1&limit=10",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
+                "api",
+                "v1",
                 "tracking",
                 "animal",
                 "{{animalId}}"
@@ -820,6 +915,86 @@
                   "key": "limit",
                   "value": "10"
                 }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Tracking Event",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/tracking/{{trackingEventId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "tracking",
+                "{{trackingEventId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Tracking Event",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/tracking/{{trackingEventId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "tracking",
+                "{{trackingEventId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"weightKg\": 465,\n  \"notes\": \"Corrected weigh-in\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Tracking Event",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/tracking/{{trackingEventId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "tracking",
+                "{{trackingEventId}}"
               ]
             }
           }
@@ -844,18 +1019,19 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/health-records",
+              "raw": "{{baseUrl}}/api/v1/health-records",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
+                "api",
+                "v1",
                 "health-records"
               ]
             },
-            "description": "Doctor role. type: checkup | treatment | vaccination | emergency | surgery | other",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"animalId\": \"{{animalId}}\",\n  \"visitDate\": \"2026-05-17T12:00:00.000Z\",\n  \"type\": \"vaccination\",\n  \"diagnosis\": \"\",\n  \"treatment\": \"\",\n  \"vaccineName\": \"Brucellosis\",\n  \"medication\": \"\",\n  \"notes\": \"Annual vaccination\",\n  \"followUpDate\": \"2026-11-17T12:00:00.000Z\"\n}"
+              "raw": "{\n  \"animalId\": \"{{animalId}}\",\n  \"visitDate\": \"2026-05-17T12:00:00.000Z\",\n  \"type\": \"vaccination\",\n  \"vaccineName\": \"Brucellosis\",\n  \"notes\": \"Annual vaccination\",\n  \"followUpDate\": \"2026-11-17T12:00:00.000Z\"\n}"
             }
           },
           "event": [
@@ -879,11 +1055,13 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/health-records?page=1&limit=10",
+              "raw": "{{baseUrl}}/api/v1/health-records?page=1&limit=10",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
+                "api",
+                "v1",
                 "health-records"
               ],
               "query": [
@@ -910,11 +1088,13 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/health-records/animal/{{animalId}}?page=1&limit=10",
+              "raw": "{{baseUrl}}/api/v1/health-records/animal/{{animalId}}?page=1&limit=10",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
+                "api",
+                "v1",
                 "health-records",
                 "animal",
                 "{{animalId}}"
@@ -928,6 +1108,86 @@
                   "key": "limit",
                   "value": "10"
                 }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Health Record",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/health-records/{{healthRecordId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "health-records",
+                "{{healthRecordId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Health Record",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/health-records/{{healthRecordId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "health-records",
+                "{{healthRecordId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"notes\": \"Booster scheduled\",\n  \"diagnosis\": \"Healthy\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Health Record",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/health-records/{{healthRecordId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "health-records",
+                "{{healthRecordId}}"
               ]
             }
           }
@@ -948,11 +1208,13 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/dashboard/me",
+              "raw": "{{baseUrl}}/api/v1/dashboard/me",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
+                "api",
+                "v1",
                 "dashboard",
                 "me"
               ]
@@ -971,11 +1233,13 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/dashboard/farmer",
+              "raw": "{{baseUrl}}/api/v1/dashboard/farmer",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
+                "api",
+                "v1",
                 "dashboard",
                 "farmer"
               ]
@@ -993,11 +1257,13 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/dashboard/doctor",
+              "raw": "{{baseUrl}}/api/v1/dashboard/doctor",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
+                "api",
+                "v1",
                 "dashboard",
                 "doctor"
               ]
@@ -1020,11 +1286,13 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/admin/analytics",
+              "raw": "{{baseUrl}}/api/v1/admin/analytics",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
+                "api",
+                "v1",
                 "admin",
                 "analytics"
               ]
@@ -1042,11 +1310,13 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/admin/farmers?page=1&limit=10",
+              "raw": "{{baseUrl}}/api/v1/admin/farmers?page=1&limit=10",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
+                "api",
+                "v1",
                 "admin",
                 "farmers"
               ],
@@ -1074,11 +1344,13 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/admin/doctors?page=1&limit=10",
+              "raw": "{{baseUrl}}/api/v1/admin/doctors?page=1&limit=10",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
+                "api",
+                "v1",
                 "admin",
                 "doctors"
               ],
@@ -1106,11 +1378,13 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/admin/users/{{farmerId}}",
+              "raw": "{{baseUrl}}/api/v1/admin/users/{{farmerId}}",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
+                "api",
+                "v1",
                 "admin",
                 "users",
                 "{{farmerId}}"
@@ -1133,11 +1407,13 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/admin/users/{{farmerId}}",
+              "raw": "{{baseUrl}}/api/v1/admin/users/{{farmerId}}",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
+                "api",
+                "v1",
                 "admin",
                 "users",
                 "{{farmerId}}"
@@ -1164,11 +1440,13 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/admin/doctors/{{doctorId}}/status",
+              "raw": "{{baseUrl}}/api/v1/admin/doctors/{{doctorId}}/status",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
+                "api",
+                "v1",
                 "admin",
                 "doctors",
                 "{{doctorId}}",
@@ -1197,11 +1475,13 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/admin/users",
+              "raw": "{{baseUrl}}/api/v1/admin/users",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
+                "api",
+                "v1",
                 "admin",
                 "users"
               ]
@@ -1223,11 +1503,13 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/upload/resource?url={{uploadUrl}}",
+              "raw": "{{baseUrl}}/api/v1/upload/resource?url={{uploadUrl}}",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
+                "api",
+                "v1",
                 "upload",
                 "resource"
               ],
@@ -1247,11 +1529,13 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/upload/open?url={{uploadUrl}}",
+              "raw": "{{baseUrl}}/api/v1/upload/open?url={{uploadUrl}}",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
+                "api",
+                "v1",
                 "upload",
                 "open"
               ],
@@ -1270,11 +1554,13 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/upload/stream?url={{uploadUrl}}",
+              "raw": "{{baseUrl}}/api/v1/upload/stream?url={{uploadUrl}}",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
+                "api",
+                "v1",
                 "upload",
                 "stream"
               ],
@@ -1309,11 +1595,13 @@
               ]
             },
             "url": {
-              "raw": "{{baseUrl}}/upload/single",
+              "raw": "{{baseUrl}}/api/v1/upload/single",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
+                "api",
+                "v1",
                 "upload",
                 "single"
               ]
@@ -1356,11 +1644,13 @@
               ]
             },
             "url": {
-              "raw": "{{baseUrl}}/upload/multiple",
+              "raw": "{{baseUrl}}/api/v1/upload/multiple",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
+                "api",
+                "v1",
                 "upload",
                 "multiple"
               ]
@@ -1382,11 +1672,13 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/upload",
+              "raw": "{{baseUrl}}/api/v1/upload",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
+                "api",
+                "v1",
                 "upload"
               ]
             },
@@ -1411,11 +1703,13 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/upload/remove-batch",
+              "raw": "{{baseUrl}}/api/v1/upload/remove-batch",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
+                "api",
+                "v1",
                 "upload",
                 "remove-batch"
               ]

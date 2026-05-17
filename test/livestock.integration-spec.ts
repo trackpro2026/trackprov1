@@ -1,13 +1,14 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { MongoMemoryServer } from 'mongodb-memory-server';
-import { ValidationPipe } from '../src/common/pipes/validation.pipe';
+import { NestExpressApplication } from '@nestjs/platform-express';
+import { configureApp } from '../src/common/bootstrap/configure-app';
 import { EmailService } from '../src/integrations/email/email.service';
 import { signupAndLogin } from './test-helpers';
+import { api } from './api-prefix';
 
 describe('Livestock modules (integration)', () => {
-  let app: INestApplication;
+  let app: NestExpressApplication;
   let mongod: MongoMemoryServer;
   let farmerToken: string;
   let animalId: string;
@@ -32,8 +33,8 @@ describe('Livestock modules (integration)', () => {
       })
       .compile();
 
-    app = moduleFixture.createNestApplication();
-    app.useGlobalPipes(new ValidationPipe());
+    app = moduleFixture.createNestApplication<NestExpressApplication>();
+    configureApp(app, { swagger: false });
     await app.init();
 
     farmerToken = await signupAndLogin(app, {
@@ -49,7 +50,7 @@ describe('Livestock modules (integration)', () => {
 
   it('animal CRUD flow', async () => {
     const created = await request(app.getHttpServer())
-      .post('/animals')
+      .post(api('/animals'))
       .set('Authorization', `Bearer ${farmerToken}`)
       .send({
         tagId: 'EAR-100',
@@ -62,12 +63,12 @@ describe('Livestock modules (integration)', () => {
     expect(created.body.name).toBe('Daisy');
 
     await request(app.getHttpServer())
-      .get(`/animals/${animalId}`)
+      .get(api(`/animals/${animalId}`))
       .set('Authorization', `Bearer ${farmerToken}`)
       .expect(200);
 
     await request(app.getHttpServer())
-      .patch(`/animals/${animalId}`)
+      .patch(api(`/animals/${animalId}`))
       .set('Authorization', `Bearer ${farmerToken}`)
       .send({ weightKg: 455 })
       .expect(200);
@@ -75,7 +76,7 @@ describe('Livestock modules (integration)', () => {
 
   it('tracking event updates weight', async () => {
     await request(app.getHttpServer())
-      .post('/tracking')
+      .post(api('/tracking'))
       .set('Authorization', `Bearer ${farmerToken}`)
       .send({
         animalId,
@@ -86,7 +87,7 @@ describe('Livestock modules (integration)', () => {
       .expect(201);
 
     const animal = await request(app.getHttpServer())
-      .get(`/animals/${animalId}`)
+      .get(api(`/animals/${animalId}`))
       .set('Authorization', `Bearer ${farmerToken}`)
       .expect(200);
     expect(animal.body.weightKg).toBe(460);
@@ -94,7 +95,7 @@ describe('Livestock modules (integration)', () => {
 
   it('farmer dashboard returns herd stats', async () => {
     const res = await request(app.getHttpServer())
-      .get('/dashboard/farmer')
+      .get(api('/dashboard/farmer'))
       .set('Authorization', `Bearer ${farmerToken}`)
       .expect(200);
     expect(res.body).toHaveProperty('animalStats');

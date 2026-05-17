@@ -36,7 +36,9 @@ npm run start:dev
 
 Default MongoDB: `mongodb://localhost:27017/trackpro`
 
-Swagger UI: `http://localhost:3000/api`
+Swagger UI: `http://localhost:3000/api/docs`
+
+API base path: `http://localhost:3000/api/v1`
 
 ## Postman
 
@@ -55,8 +57,8 @@ Signup/login tests save `{{accessToken}}`. Use **Sign Up Doctor** + **Login Doct
 
 ## API overview
 
-### Auth (public)
-- `POST /auth/signup` — Farmer registration
+### Auth (public) — prefix `/api/v1`
+- `POST /api/v1/auth/signup` — Farmer registration
 - `POST /auth/signup/doctor` — Veterinarian registration
 - `POST /auth/signup/admin` — Admin registration
 - `POST /auth/login` — Farmer login
@@ -77,21 +79,34 @@ Signup/login tests save `{{accessToken}}`. Use **Sign Up Doctor** + **Login Doct
 ### Doctor portal (protected, doctor role)
 - `PATCH /doctor/profile` — Complete veterinarian profile
 
-### Animals (protected)
-- `POST /animals` — Register animal (farmer)
-- `GET /animals` — List animals (farmer / assigned doctor / admin)
-- `GET /animals/:id` — Animal details
-- `PATCH /animals/:id` — Update animal
-- `DELETE /animals/:id` — Remove animal (farmer / admin)
+### Animals `/api/v1/animals` — full CRUD
+| Method | Description |
+|--------|-------------|
+| POST | Create (farmer) |
+| GET | List (farmer / doctor / admin) |
+| GET `:id` | One animal |
+| PATCH `:id` | **Update** animal (farmer, assigned doctor, admin) |
+| DELETE `:id` | Delete (farmer, admin) |
 
-### Tracking (protected, farmer)
-- `POST /tracking` — Log weight, location, or feeding event
-- `GET /tracking/animal/:animalId` — Event history for an animal
+### Tracking `/api/v1/tracking` — full CRUD (farmer)
+| Method | Description |
+|--------|-------------|
+| POST | Create event (weight updates animal `weightKg`) |
+| GET | List all events (`?animalId=` optional) |
+| GET `animal/:animalId` | List for one animal |
+| GET `:id` | One event |
+| PATCH `:id` | **Update** event |
+| DELETE `:id` | Delete event |
 
-### Health records (protected)
-- `POST /health-records` — Create record (doctor)
-- `GET /health-records` — Doctor’s records
-- `GET /health-records/animal/:animalId` — Records for an animal
+### Health records `/api/v1/health-records` — full CRUD
+| Method | Description |
+|--------|-------------|
+| POST | Create (doctor) |
+| GET | Doctor’s records |
+| GET `animal/:animalId` | By animal (farmer / doctor / admin) |
+| GET `:id` | One record |
+| PATCH `:id` | **Update** (doctor who created, or admin) |
+| DELETE `:id` | Delete (doctor who created, or admin) |
 
 ### Dashboard (protected)
 - `GET /dashboard/me` — Role-based summary

@@ -4,6 +4,7 @@ import { getModelToken } from '@nestjs/mongoose';
 import { User } from '../src/modules/user/entities/user.entity';
 import { UserAccountState } from '../src/modules/user/entities/user-account-state.enum';
 import type { Model } from 'mongoose';
+import { api } from './api-prefix';
 
 export const TEST_PASSWORD = 'password123';
 
@@ -34,10 +35,10 @@ export async function signupAndLogin(
 ): Promise<string> {
   const path =
     opts.role === 'doctor'
-      ? '/auth/signup/doctor'
+      ? api('/auth/signup/doctor')
       : opts.role === 'admin'
-        ? '/auth/signup/admin'
-        : '/auth/signup';
+        ? api('/auth/signup/admin')
+        : api('/auth/signup');
 
   await request(app.getHttpServer())
     .post(path)
@@ -50,7 +51,7 @@ export async function signupAndLogin(
     await activateUser(app, opts.email, { userState: UserAccountState.Active });
   }
 
-  const loginPath = opts.role === 'doctor' ? '/auth/login/doctor' : '/auth/login';
+  const loginPath = opts.role === 'doctor' ? api('/auth/login/doctor') : api('/auth/login');
   const loginRes = await request(app.getHttpServer())
     .post(loginPath)
     .send({ email: opts.email, password: TEST_PASSWORD })

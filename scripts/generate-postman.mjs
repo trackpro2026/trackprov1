@@ -1,11 +1,17 @@
 import { writeFileSync } from 'fs';
 
+/** Must match src/common/constants/api.constants.ts */
+const API_PREFIX = 'api/v1';
+
 const bearer = { key: 'Authorization', value: 'Bearer {{accessToken}}' };
 const auth = [bearer];
 
-function parseUrl(pathWithQuery) {
+function parseUrl(pathWithQuery, { root = false } = {}) {
   const [pathPart, queryString] = pathWithQuery.split('?');
-  const urlPath = pathPart.startsWith('/') ? pathPart.slice(1) : pathPart;
+  let urlPath = pathPart.startsWith('/') ? pathPart.slice(1) : pathPart;
+  if (!root) {
+    urlPath = `${API_PREFIX}/${urlPath}`.replace(/\/+/g, '/');
+  }
   const path = urlPath.split('/').filter(Boolean);
   const query = [];
   if (queryString) {
@@ -22,7 +28,7 @@ function parseUrl(pathWithQuery) {
 }
 
 function req(name, method, pathWithQuery, opts = {}) {
-  const { raw, path, query } = parseUrl(pathWithQuery);
+  const { raw, path, query } = parseUrl(pathWithQuery, { root: opts.root });
   const url = { raw, host: ['{{baseUrl}}'], path };
   if (query.length) url.query = query;
 
@@ -81,6 +87,15 @@ const saveHealthRecordId = [
   '}',
 ].join('\n');
 
+const saveTrackingEventId = [
+  'const j = pm.response.json();',
+  'const id = j._id || j.id;',
+  "if (id) {",
+  "  pm.environment.set('trackingEventId', id);",
+  "  pm.collectionVariables.set('trackingEventId', id);",
+  '}',
+].join('\n');
+
 const collection = {
   info: {
     name: 'Trackpro API',
@@ -91,7 +106,7 @@ const collection = {
       '• Farmers: signup → verify email → login → manage animals & tracking\n' +
       '• Doctors: signup/doctor → verify → complete profile → admin approves → login/doctor\n' +
       '• Upload: farmers → userFileUrls; doctors → doctorProfile.documentUrls; use attachTo=none to skip DB\n\n' +
-      'Run Sign Up + Login requests first; tests auto-set {{accessToken}}, {{farmerId}}, {{doctorId}}, {{animalId}}.',
+      'Base path: /api/v1. Health & Swagger stay at root. Run Sign Up + Login first; tests auto-set tokens and IDs.',
     schema: 'https://schema.getpostman.com/json/collection/v2.1.0/collection.json',
   },
   auth: {
@@ -105,14 +120,15 @@ const collection = {
     { key: 'doctorId', value: '' },
     { key: 'animalId', value: '' },
     { key: 'healthRecordId', value: '' },
+    { key: 'trackingEventId', value: '' },
     { key: 'uploadUrl', value: '' },
   ],
   item: [
     {
       name: 'Health',
       item: [
-        req('Root', 'GET', '/', { public: true }),
-        req('Health', 'GET', '/health', { public: true }),
+        req('Root', 'GET', '/', { public: true, root: true }),
+        req('Health', 'GET', '/health', { public: true, root: true }),
       ],
     },
     {
@@ -257,7 +273,7 @@ const collection = {
     {
       name: 'Tracking',
       item: [
-        req('Log Tracking Event', 'POST', '/tracking', {
+        req('Create Tracking Event', 'POST', '/tracking', {
           body: {
             animalId: '{{animalId}}',
             recordedAt: '2026-05-17T12:00:00.000Z',
@@ -266,9 +282,15 @@ const collection = {
             location: 'North Field',
             notes: 'Weekly weigh-in',
           },
-          description: 'Farmer role. type: weight | location | feeding | movement | other',
+          test: saveTrackingEventId,
         }),
+        req('List All Tracking Events', 'GET', '/tracking?page=1&limit=10'),
         req('List Events for Animal', 'GET', '/tracking/animal/{{animalId}}?page=1&limit=10'),
+        req('Get Tracking Event', 'GET', '/tracking/{{trackingEventId}}'),
+        req('Update Tracking Event', 'PATCH', '/tracking/{{trackingEventId}}', {
+          body: { weightKg: 465, notes: 'Corrected weigh-in' },
+        }),
+        req('Delete Tracking Event', 'DELETE', '/tracking/{{trackingEventId}}'),
       ],
     },
     {
@@ -279,18 +301,19 @@ const collection = {
             animalId: '{{animalId}}',
             visitDate: '2026-05-17T12:00:00.000Z',
             type: 'vaccination',
-            diagnosis: '',
-            treatment: '',
             vaccineName: 'Brucellosis',
-            medication: '',
             notes: 'Annual vaccination',
             followUpDate: '2026-11-17T12:00:00.000Z',
           },
           test: saveHealthRecordId,
-          description: 'Doctor role. type: checkup | treatment | vaccination | emergency | surgery | other',
         }),
         req('List My Records (Doctor)', 'GET', '/health-records?page=1&limit=10'),
         req('List Records for Animal', 'GET', '/health-records/animal/{{animalId}}?page=1&limit=10'),
+        req('Get Health Record', 'GET', '/health-records/{{healthRecordId}}'),
+        req('Update Health Record', 'PATCH', '/health-records/{{healthRecordId}}', {
+          body: { notes: 'Booster scheduled', diagnosis: 'Healthy' },
+        }),
+        req('Delete Health Record', 'DELETE', '/health-records/{{healthRecordId}}'),
       ],
     },
     {
@@ -351,7 +374,11 @@ const collection = {
                 { key: 'file', type: 'file', src: '', description: 'Select image or PDF' },
               ],
             },
-            url: { raw: '{{baseUrl}}/upload/single', host: ['{{baseUrl}}'], path: ['upload', 'single'] },
+            url: {
+              raw: `{{baseUrl}}/${API_PREFIX}/upload/single`,
+              host: ['{{baseUrl}}'],
+              path: API_PREFIX.split('/').concat(['upload', 'single']),
+            },
             description:
               'Multipart field `file`. Farmer → userFileUrls; doctor → doctorProfile.documentUrls. Query attachTo=none to skip DB.',
           },
@@ -380,7 +407,11 @@ const collection = {
                 { key: 'files', type: 'file', src: '', description: 'Up to 10 files' },
               ],
             },
-            url: { raw: '{{baseUrl}}/upload/multiple', host: ['{{baseUrl}}'], path: ['upload', 'multiple'] },
+            url: {
+              raw: `{{baseUrl}}/${API_PREFIX}/upload/multiple`,
+              host: ['{{baseUrl}}'],
+              path: API_PREFIX.split('/').concat(['upload', 'multiple']),
+            },
           },
         },
         req('Delete Upload', 'DELETE', '/upload', {
@@ -405,6 +436,7 @@ const environment = {
     { key: 'doctorId', value: '', type: 'default', enabled: true },
     { key: 'animalId', value: '', type: 'default', enabled: true },
     { key: 'healthRecordId', value: '', type: 'default', enabled: true },
+    { key: 'trackingEventId', value: '', type: 'default', enabled: true },
     { key: 'uploadUrl', value: '', type: 'default', enabled: true },
   ],
   _postman_variable_scope: 'environment',

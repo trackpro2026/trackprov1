@@ -1,3 +1,4 @@
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsArray,
   IsDateString,
@@ -16,14 +17,17 @@ import {
 } from '../entities/animal.entity';
 
 export class CreateAnimalDto {
+  @ApiProperty({ example: 'EAR-001', description: 'Ear tag or RFID — unique per farm' })
   @IsString()
   @MaxLength(80)
   tagId: string;
 
+  @ApiProperty({ example: 'Bessie' })
   @IsString()
   @MaxLength(120)
   name: string;
 
+  @ApiProperty({ enum: AnimalSpecies, example: AnimalSpecies.Cattle })
   @IsEnum(AnimalSpecies)
   species: AnimalSpecies;
 

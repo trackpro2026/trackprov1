@@ -1,13 +1,14 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { MongoMemoryServer } from 'mongodb-memory-server';
-import { ValidationPipe } from '../src/common/pipes/validation.pipe';
+import { NestExpressApplication } from '@nestjs/platform-express';
+import { configureApp } from '../src/common/bootstrap/configure-app';
 import { EmailService } from '../src/integrations/email/email.service';
 import { activateUser, signupAndLogin, TEST_PASSWORD } from './test-helpers';
+import { api } from './api-prefix';
 
 describe('Doctor (integration)', () => {
-  let app: INestApplication;
+  let app: NestExpressApplication;
   let mongod: MongoMemoryServer;
 
   beforeAll(async () => {
@@ -31,8 +32,8 @@ describe('Doctor (integration)', () => {
       })
       .compile();
 
-    app = moduleFixture.createNestApplication();
-    app.useGlobalPipes(new ValidationPipe());
+    app = moduleFixture.createNestApplication<NestExpressApplication>();
+    configureApp(app, { swagger: false });
     await app.init();
   }, 120000);
 
@@ -44,14 +45,14 @@ describe('Doctor (integration)', () => {
   it('rejects farmer on doctor login', async () => {
     const email = 'not-doctor@example.com';
     await request(app.getHttpServer())
-      .post('/auth/signup')
+      .post(api('/auth/signup'))
       .send({ name: 'Regular Farmer', email, password: TEST_PASSWORD })
       .expect(201);
 
     await activateUser(app, email);
 
     await request(app.getHttpServer())
-      .post('/auth/login/doctor')
+      .post(api('/auth/login/doctor'))
       .send({ email, password: TEST_PASSWORD })
       .expect(403);
   });
@@ -64,7 +65,7 @@ describe('Doctor (integration)', () => {
     });
 
     await request(app.getHttpServer())
-      .patch('/doctor/profile')
+      .patch(api('/doctor/profile'))
       .set('Authorization', `Bearer ${token}`)
       .send({
         clinicName: 'Valley Vet',
@@ -74,7 +75,7 @@ describe('Doctor (integration)', () => {
       .expect(200);
 
     const dash = await request(app.getHttpServer())
-      .get('/dashboard/doctor')
+      .get(api('/dashboard/doctor'))
       .set('Authorization', `Bearer ${token}`)
       .expect(200);
     expect(dash.body).toHaveProperty('assignedAnimalCount');
