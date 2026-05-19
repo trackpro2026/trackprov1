@@ -13,6 +13,7 @@ import { HealthRecordModule } from './modules/health-record/health-record.module
 import { TrackingModule } from './modules/tracking/tracking.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
+import { AiModule } from './modules/ai/ai.module';
 import { UploadModule } from './modules/upload/upload.module';
 import { EncryptionModule } from './core/encryption/encryption.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
@@ -42,6 +43,7 @@ import { HealthController } from './health.controller';
     UploadModule,
     AdminModule,
     DashboardModule,
+    AiModule,
   ],
   controllers: [HealthController],
   providers: [

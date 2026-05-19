@@ -23,3 +23,6 @@ export const DASHBOARD_TAG = 'Role-based summaries: herd stats (farmer) or assig
 export const ADMIN_TAG = 'Platform administration — list users, approve vets, view analytics.';
 
 export const UPLOAD_TAG = 'Cloudinary file uploads; URLs saved to farmer, doctor, or admin profile when applicable.';
+
+export const AI_TAG =
+  'Gemini-powered livestock AI: photo triage, multilingual vet chat, outbreak detection, health scoring, vaccination scheduling, and surveillance reports. Requires GEMINI_API_KEY.';
