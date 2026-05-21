@@ -3,7 +3,6 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { HealthRecord, HealthRecordSchema } from './entities/health-record.entity';
 import { Animal, AnimalSchema } from '../animal/entities/animal.entity';
 import { HealthRecordService } from './health-record.service';
-import { HealthRecordController } from './health-record.controller';
 import { VeterinaryVisitsController } from './veterinary-visits.controller';
 
 @Module({
@@ -13,7 +12,7 @@ import { VeterinaryVisitsController } from './veterinary-visits.controller';
       { name: Animal.name, schema: AnimalSchema },
     ]),
   ],
-  controllers: [HealthRecordController, VeterinaryVisitsController],
+  controllers: [VeterinaryVisitsController],
   providers: [HealthRecordService],
   exports: [HealthRecordService],
 })

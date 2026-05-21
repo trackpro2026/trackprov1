@@ -87,25 +87,15 @@ const saveHealthRecordId = [
   '}',
 ].join('\n');
 
-const saveTrackingEventId = [
-  'const j = pm.response.json();',
-  'const id = j._id || j.id;',
-  "if (id) {",
-  "  pm.environment.set('trackingEventId', id);",
-  "  pm.collectionVariables.set('trackingEventId', id);",
-  '}',
-].join('\n');
-
 const collection = {
   info: {
     name: 'Trackpro API',
     description:
-      'Track-pro livestock API: farmers, veterinarians (doctors), animals, health records, tracking.\n\n' +
+      'Track-pro API (Figma): farmer, veterinarian, slaughterhouse, admin dashboards.\n\n' +
       'Import with `Trackpro.local.postman_environment.json`.\n\n' +
-      'Roles: `farmer` | `doctor` | `admin`\n' +
-      '• Farmers: signup → verify email → login → manage animals & tracking\n' +
-      '• Doctors: signup/doctor → verify → complete profile → admin approves → login/doctor\n' +
-      '• Upload: farmers → userFileUrls; doctors → doctorProfile.documentUrls; use attachTo=none to skip DB\n\n' +
+      'Roles: `farmer` | `doctor` | `slaughterhouse` | `admin`\n' +
+      '• Livestock: /livestock • Visits: /veterinary-visits • AI: /ai/*\n' +
+      '• Shared: /dashboard/me, /notifications, /map/markers\n\n' +
       'Base path: /api/v1. Health & Swagger stay at root. Run Sign Up + Login first; tests auto-set tokens and IDs.',
     schema: 'https://schema.getpostman.com/json/collection/v2.1.0/collection.json',
   },
@@ -120,7 +110,6 @@ const collection = {
     { key: 'doctorId', value: '' },
     { key: 'animalId', value: '' },
     { key: 'healthRecordId', value: '' },
-    { key: 'trackingEventId', value: '' },
     { key: 'slaughterhouseId', value: '' },
     { key: 'slaughterRecordId', value: '' },
     { key: 'uploadUrl', value: '' },
@@ -263,75 +252,24 @@ const collection = {
       item: [
         req('Create Livestock', 'POST', '/livestock', {
           body: {
-            tagId: 'EAR-002',
-            name: 'Duke',
-            species: 'goat',
-            breed: 'Boer',
-            sex: 'male',
-            healthStatus: 'healthy',
-          },
-          test: saveAnimalId,
-          description: 'Figma alias of POST /animals.',
-        }),
-        req('List Livestock', 'GET', '/livestock?page=1&limit=10'),
-        req('Get Livestock', 'GET', '/livestock/{{animalId}}'),
-      ],
-    },
-    {
-      name: 'Animals',
-      item: [
-        req('Create Animal', 'POST', '/animals', {
-          body: {
             tagId: 'EAR-001',
             name: 'Bessie',
             species: 'cattle',
             breed: 'Angus',
             sex: 'female',
-            dateOfBirth: '2022-03-15',
             weightKg: 450,
             healthStatus: 'healthy',
-            pastureOrPen: 'North Field',
             assignedDoctorId: '{{doctorId}}',
-            notes: 'Primary dairy cow',
           },
           test: saveAnimalId,
           description: 'Farmer role only.',
         }),
-        req('List Animals', 'GET', '/animals?page=1&limit=10'),
-        req('Get Animal', 'GET', '/animals/{{animalId}}'),
-        req('Update Animal', 'PATCH', '/animals/{{animalId}}', {
-          body: {
-            weightKg: 455,
-            healthStatus: 'healthy',
-            assignedDoctorId: '{{doctorId}}',
-          },
+        req('List Livestock', 'GET', '/livestock?page=1&limit=10'),
+        req('Get Livestock', 'GET', '/livestock/{{animalId}}'),
+        req('Update Livestock', 'PATCH', '/livestock/{{animalId}}', {
+          body: { weightKg: 455, healthStatus: 'healthy' },
         }),
-        req('Delete Animal', 'DELETE', '/animals/{{animalId}}', {
-          description: 'Farmer or admin.',
-        }),
-      ],
-    },
-    {
-      name: 'Tracking',
-      item: [
-        req('Create Tracking Event', 'POST', '/tracking', {
-          body: {
-            animalId: '{{animalId}}',
-            recordedAt: '2026-05-17T12:00:00.000Z',
-            type: 'weight',
-            weightKg: 460,
-            location: 'North Field',
-            notes: 'Weekly weigh-in',
-          },
-          test: saveTrackingEventId,
-        }),
-        req('List All Tracking Events', 'GET', '/tracking?page=1&limit=10'),
-        req('List Events for Animal', 'GET', '/tracking/animal/{{animalId}}?page=1&limit=10'),
-        req('Get Tracking Event', 'GET', '/tracking/{{trackingEventId}}'),
-        req('Update Tracking Event', 'PATCH', '/tracking/{{trackingEventId}}', {
-          body: { weightKg: 465, notes: 'Corrected weigh-in' },
-        }),
-        req('Delete Tracking Event', 'DELETE', '/tracking/{{trackingEventId}}'),
+        req('Delete Livestock', 'DELETE', '/livestock/{{animalId}}'),
       ],
     },
     {
@@ -342,36 +280,30 @@ const collection = {
             animalId: '{{animalId}}',
             visitDate: '2026-05-17T12:00:00.000Z',
             type: 'checkup',
-            diagnosis: 'Routine check',
+            reason: 'Routine Checkup',
+            status: 'pending',
           },
           test: saveHealthRecordId,
         }),
+        req('Visit Stats (Doctor)', 'GET', '/veterinary-visits/stats'),
         req('List Visits (Doctor)', 'GET', '/veterinary-visits?page=1&limit=10'),
         req('List Visits for Animal', 'GET', '/veterinary-visits/animal/{{animalId}}?page=1&limit=10'),
+        req('Get Visit', 'GET', '/veterinary-visits/{{healthRecordId}}'),
+        req('Update Visit', 'PATCH', '/veterinary-visits/{{healthRecordId}}', {
+          body: { status: 'completed' },
+        }),
       ],
     },
     {
-      name: 'Health Records',
+      name: 'Notifications',
       item: [
-        req('Create Health Record', 'POST', '/health-records', {
-          body: {
-            animalId: '{{animalId}}',
-            visitDate: '2026-05-17T12:00:00.000Z',
-            type: 'vaccination',
-            vaccineName: 'Brucellosis',
-            notes: 'Annual vaccination',
-            followUpDate: '2026-11-17T12:00:00.000Z',
-          },
-          test: saveHealthRecordId,
-        }),
-        req('List My Records (Doctor)', 'GET', '/health-records?page=1&limit=10'),
-        req('List Records for Animal', 'GET', '/health-records/animal/{{animalId}}?page=1&limit=10'),
-        req('Get Health Record', 'GET', '/health-records/{{healthRecordId}}'),
-        req('Update Health Record', 'PATCH', '/health-records/{{healthRecordId}}', {
-          body: { notes: 'Booster scheduled', diagnosis: 'Healthy' },
-        }),
-        req('Delete Health Record', 'DELETE', '/health-records/{{healthRecordId}}'),
+        req('List Notifications', 'GET', '/notifications?page=1&limit=20'),
+        req('Mark All Read', 'PATCH', '/notifications/read-all'),
       ],
+    },
+    {
+      name: 'Map',
+      item: [req('Map Markers', 'GET', '/map/markers')],
     },
     {
       name: 'Slaughterhouse',
@@ -553,7 +485,6 @@ const environment = {
     { key: 'doctorId', value: '', type: 'default', enabled: true },
     { key: 'animalId', value: '', type: 'default', enabled: true },
     { key: 'healthRecordId', value: '', type: 'default', enabled: true },
-    { key: 'trackingEventId', value: '', type: 'default', enabled: true },
     { key: 'uploadUrl', value: '', type: 'default', enabled: true },
   ],
   _postman_variable_scope: 'environment',

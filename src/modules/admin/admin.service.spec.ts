@@ -5,6 +5,8 @@ import { UserService } from '../user/user.service';
 import { User } from '../user/entities/user.entity';
 import { Animal } from '../animal/entities/animal.entity';
 import { HealthRecord } from '../health-record/entities/health-record.entity';
+import { Slaughterhouse } from '../slaughterhouse/entities/slaughterhouse.entity';
+import { SlaughterRecord } from '../slaughterhouse/entities/slaughter-record.entity';
 import { Role } from '../../common/decorators/roles.decorator';
 import { DoctorStatus } from '../user/entities/doctor-profile.schema';
 
@@ -38,6 +40,14 @@ describe('AdminService', () => {
           provide: getModelToken(HealthRecord.name),
           useValue: { countDocuments: jest.fn().mockResolvedValue(2) },
         },
+        {
+          provide: getModelToken(Slaughterhouse.name),
+          useValue: { countDocuments: jest.fn().mockResolvedValue(1) },
+        },
+        {
+          provide: getModelToken(SlaughterRecord.name),
+          useValue: { countDocuments: jest.fn().mockResolvedValue(0) },
+        },
       ],
     }).compile();
 
@@ -52,7 +62,14 @@ describe('AdminService', () => {
 
   it('getAnalytics aggregates counts', async () => {
     const analytics = await service.getAnalytics();
-    expect(analytics).toEqual({ farmers: 5, doctors: 5, animals: 10, healthRecords: 2 });
+    expect(analytics).toEqual({
+      farmers: 5,
+      doctors: 5,
+      animals: 10,
+      healthRecords: 2,
+      slaughterhouses: 1,
+      slaughterRecords: 0,
+    });
   });
 
   it('updateDoctorStatus delegates', async () => {

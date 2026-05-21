@@ -1,17 +1,10 @@
 /** Shared Swagger copy — imported by controllers via @ApiOperation({ description: ... }) */
 
 export const LIVESTOCK_TAG =
-  'Livestock herd registry (Figma: Livestock). Ear tag, species, weight, assigned vet. Same data as `/animals`.';
-
-export const ANIMALS_TAG = LIVESTOCK_TAG;
+  'Livestock herd registry (Figma). Ear tag, species, weight, health status, assigned vet.';
 
 export const VETERINARY_VISITS_TAG =
-  'Veterinary visits module (Figma). Checkups, vaccinations, treatments, emergencies. Same data as `/health-records`.';
-
-export const HEALTH_RECORDS_TAG = VETERINARY_VISITS_TAG;
-
-export const TRACKING_TAG =
-  'Weight, location, and feeding logs over time. Farmers log events; weight entries also update the animal’s current weightKg.';
+  'Veterinary visits (Figma). Checkups, vaccinations, treatments, emergencies; reason and status.';
 
 export const AUTH_TAG =
   'Registration, login, email verification, and password reset. Use Bearer JWT from signup/login on protected routes.';

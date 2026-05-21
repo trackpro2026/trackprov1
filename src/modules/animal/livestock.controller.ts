@@ -27,7 +27,6 @@ import { RolesGuard } from '../../common/guards/roles.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Role, Roles } from '../../common/decorators/roles.decorator';
 
-/** Figma-aligned path alias — same handlers as `/animals`. */
 @ApiTags('Livestock')
 @ApiBearerAuth(SWAGGER_BEARER)
 @Controller('livestock')
@@ -40,7 +39,7 @@ export class LivestockController {
   @Roles(Role.Farmer)
   @ApiOperation({
     summary: 'Register livestock',
-    description: `${LIVESTOCK_TAG}\n\nAlias of \`POST /animals\`.`,
+    description: LIVESTOCK_TAG,
   })
   create(@Body() dto: CreateAnimalDto, @CurrentUser('id') farmerId: string) {
     return this.animalService.create(dto, farmerId);

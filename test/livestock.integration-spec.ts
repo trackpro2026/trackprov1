@@ -48,9 +48,9 @@ describe('Livestock modules (integration)', () => {
     if (mongod) await mongod.stop();
   });
 
-  it('animal CRUD flow', async () => {
+  it('livestock CRUD flow', async () => {
     const created = await request(app.getHttpServer())
-      .post(api('/animals'))
+      .post(api('/livestock'))
       .set('Authorization', `Bearer ${farmerToken}`)
       .send({
         tagId: 'EAR-100',
@@ -63,34 +63,15 @@ describe('Livestock modules (integration)', () => {
     expect(created.body.name).toBe('Daisy');
 
     await request(app.getHttpServer())
-      .get(api(`/animals/${animalId}`))
+      .get(api(`/livestock/${animalId}`))
       .set('Authorization', `Bearer ${farmerToken}`)
       .expect(200);
 
     await request(app.getHttpServer())
-      .patch(api(`/animals/${animalId}`))
+      .patch(api(`/livestock/${animalId}`))
       .set('Authorization', `Bearer ${farmerToken}`)
       .send({ weightKg: 455 })
       .expect(200);
-  });
-
-  it('tracking event updates weight', async () => {
-    await request(app.getHttpServer())
-      .post(api('/tracking'))
-      .set('Authorization', `Bearer ${farmerToken}`)
-      .send({
-        animalId,
-        recordedAt: new Date().toISOString(),
-        type: 'weight',
-        weightKg: 460,
-      })
-      .expect(201);
-
-    const animal = await request(app.getHttpServer())
-      .get(api(`/animals/${animalId}`))
-      .set('Authorization', `Bearer ${farmerToken}`)
-      .expect(200);
-    expect(animal.body.weightKg).toBe(460);
   });
 
   it('farmer dashboard returns herd stats', async () => {

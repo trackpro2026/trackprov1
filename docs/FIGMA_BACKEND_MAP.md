@@ -33,12 +33,11 @@ All signups accept optional `phone` (Figma forms).
 |-------|-----|
 | Create account / Login / Forgot password | `/auth/*` |
 | Overview + livestock table | `GET /dashboard/farmer` or `/dashboard/me` |
-| Livestocks list/detail | `GET/POST/PATCH/DELETE /livestock` or `/animals` |
-| Health history | `GET /health-records/animal/:id` or `/veterinary-visits/animal/:id` |
-| Tracking | `/tracking` |
+| Livestocks list/detail | `GET/POST/PATCH/DELETE /livestock` |
+| Health history | `GET /veterinary-visits/animal/:id` |
 | AI triage / vet chat | `/ai/health-check`, `/ai/vet-assistant` |
 
-**Farmer overview fields:** `totalLivestock`, `healthyLivestock`, `livestockOnTreatment`, `livestockTable[]` (id, species, breed, healthStatus, lastVaccinationDate).
+**Farmer overview fields:** `totalLivestock`, `healthyLivestock`, `livestockOnTreatment`, `livestockTable[]` (id, species, breed, healthStatus, lastVeterinaryVisit).
 
 ---
 
@@ -48,10 +47,10 @@ All signups accept optional `phone` (Figma forms).
 |-------|-----|
 | Create account / Login | `/auth/signup/doctor`, `/auth/login/doctor` |
 | Complete profile | `PATCH /doctor/profile` |
-| Overview cards | `GET /dashboard/doctor` + `GET /health-records/stats` |
-| Veterinary visits table | `GET /health-records` or `GET /veterinary-visits` (enriched: farmerName, livestockType, status) |
-| Visit detail | `GET /health-records/:id` |
-| Log visit | `POST /health-records` — body: `reason`, `status` (`pending` \| `completed`) |
+| Overview cards | `GET /dashboard/doctor` + `GET /veterinary-visits/stats` |
+| Veterinary visits table | `GET /veterinary-visits` (farmerName, livestockType, status) |
+| Visit detail | `GET /veterinary-visits/:id` |
+| Log visit | `POST /veterinary-visits` — body: `reason`, `status` (`pending` \| `completed`) |
 | Map | `GET /map/markers` |
 
 **Overview stats:** `totalLivestock`, `totalFarmers`, `totalVisits`, `pendingVisits`.
@@ -87,12 +86,26 @@ All signups accept optional `phone` (Figma forms).
 
 ---
 
-## Path aliases (Figma naming)
+## AI (unchanged)
 
-| Figma label | Canonical | Alias |
-|-------------|-----------|-------|
-| Livestock | `/animals` | `/livestock` |
-| Veterinary visits | `/health-records` | `/veterinary-visits` |
+| Endpoint | Purpose |
+|----------|---------|
+| `POST /ai/health-check` | Photo triage |
+| `POST /ai/vet-assistant` | Vet chat |
+| `POST /ai/guardian` | Outbreak / guardian |
+| `POST /ai/health-score` | Health score |
+| `POST /ai/vaccination-schedule` | Vaccination plan |
+| `POST /ai/report` | Surveillance report |
+
+Requires `GEMINI_API_KEY`.
+
+---
+
+## Removed (not in Figma)
+
+- `/tracking` — weight/location event log
+- `/animals`, `/health-records` — duplicate paths (use `/livestock`, `/veterinary-visits`)
+- `platform-settings` — leftover from another project
 
 ---
 

@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Trackpro API",
-    "description": "Track-pro livestock API: farmers, veterinarians (doctors), animals, health records, tracking.\n\nImport with `Trackpro.local.postman_environment.json`.\n\nRoles: `farmer` | `doctor` | `admin`\n• Farmers: signup → verify email → login → manage animals & tracking\n• Doctors: signup/doctor → verify → complete profile → admin approves → login/doctor\n• Upload: farmers → userFileUrls; doctors → doctorProfile.documentUrls; use attachTo=none to skip DB\n\nBase path: /api/v1. Health & Swagger stay at root. Run Sign Up + Login first; tests auto-set tokens and IDs.",
+    "description": "Track-pro API (Figma): farmer, veterinarian, slaughterhouse, admin dashboards.\n\nImport with `Trackpro.local.postman_environment.json`.\n\nRoles: `farmer` | `doctor` | `slaughterhouse` | `admin`\n• Livestock: /livestock • Visits: /veterinary-visits • AI: /ai/*\n• Shared: /dashboard/me, /notifications, /map/markers\n\nBase path: /api/v1. Health & Swagger stay at root. Run Sign Up + Login first; tests auto-set tokens and IDs.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -37,10 +37,6 @@
     },
     {
       "key": "healthRecordId",
-      "value": ""
-    },
-    {
-      "key": "trackingEventId",
       "value": ""
     },
     {
@@ -780,10 +776,10 @@
                 "livestock"
               ]
             },
-            "description": "Figma alias of POST /animals.",
+            "description": "Farmer role only.",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"tagId\": \"EAR-002\",\n  \"name\": \"Duke\",\n  \"species\": \"goat\",\n  \"breed\": \"Boer\",\n  \"sex\": \"male\",\n  \"healthStatus\": \"healthy\"\n}"
+              "raw": "{\n  \"tagId\": \"EAR-001\",\n  \"name\": \"Bessie\",\n  \"species\": \"cattle\",\n  \"breed\": \"Angus\",\n  \"sex\": \"female\",\n  \"weightKg\": 450,\n  \"healthStatus\": \"healthy\",\n  \"assignedDoctorId\": \"{{doctorId}}\"\n}"
             }
           },
           "event": [
@@ -852,112 +848,9 @@
               ]
             }
           }
-        }
-      ]
-    },
-    {
-      "name": "Animals",
-      "item": [
-        {
-          "name": "Create Animal",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{accessToken}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/animals",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "animals"
-              ]
-            },
-            "description": "Farmer role only.",
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"tagId\": \"EAR-001\",\n  \"name\": \"Bessie\",\n  \"species\": \"cattle\",\n  \"breed\": \"Angus\",\n  \"sex\": \"female\",\n  \"dateOfBirth\": \"2022-03-15\",\n  \"weightKg\": 450,\n  \"healthStatus\": \"healthy\",\n  \"pastureOrPen\": \"North Field\",\n  \"assignedDoctorId\": \"{{doctorId}}\",\n  \"notes\": \"Primary dairy cow\"\n}"
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": "const j = pm.response.json();\nconst id = j._id || j.id;\nif (id) {\n  pm.environment.set('animalId', id);\n  pm.collectionVariables.set('animalId', id);\n}"
-              }
-            }
-          ]
         },
         {
-          "name": "List Animals",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{accessToken}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/animals?page=1&limit=10",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "animals"
-              ],
-              "query": [
-                {
-                  "key": "page",
-                  "value": "1"
-                },
-                {
-                  "key": "limit",
-                  "value": "10"
-                }
-              ]
-            }
-          }
-        },
-        {
-          "name": "Get Animal",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{accessToken}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/animals/{{animalId}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "animals",
-                "{{animalId}}"
-              ]
-            }
-          }
-        },
-        {
-          "name": "Update Animal",
+          "name": "Update Livestock",
           "request": {
             "method": "PATCH",
             "header": [
@@ -971,25 +864,25 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/animals/{{animalId}}",
+              "raw": "{{baseUrl}}/api/v1/livestock/{{animalId}}",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
                 "v1",
-                "animals",
+                "livestock",
                 "{{animalId}}"
               ]
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"weightKg\": 455,\n  \"healthStatus\": \"healthy\",\n  \"assignedDoctorId\": \"{{doctorId}}\"\n}"
+              "raw": "{\n  \"weightKg\": 455,\n  \"healthStatus\": \"healthy\"\n}"
             }
           }
         },
         {
-          "name": "Delete Animal",
+          "name": "Delete Livestock",
           "request": {
             "method": "DELETE",
             "header": [
@@ -999,209 +892,15 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/animals/{{animalId}}",
+              "raw": "{{baseUrl}}/api/v1/livestock/{{animalId}}",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
                 "v1",
-                "animals",
+                "livestock",
                 "{{animalId}}"
-              ]
-            },
-            "description": "Farmer or admin."
-          }
-        }
-      ]
-    },
-    {
-      "name": "Tracking",
-      "item": [
-        {
-          "name": "Create Tracking Event",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{accessToken}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/tracking",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "tracking"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"animalId\": \"{{animalId}}\",\n  \"recordedAt\": \"2026-05-17T12:00:00.000Z\",\n  \"type\": \"weight\",\n  \"weightKg\": 460,\n  \"location\": \"North Field\",\n  \"notes\": \"Weekly weigh-in\"\n}"
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": "const j = pm.response.json();\nconst id = j._id || j.id;\nif (id) {\n  pm.environment.set('trackingEventId', id);\n  pm.collectionVariables.set('trackingEventId', id);\n}"
-              }
-            }
-          ]
-        },
-        {
-          "name": "List All Tracking Events",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{accessToken}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/tracking?page=1&limit=10",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "tracking"
-              ],
-              "query": [
-                {
-                  "key": "page",
-                  "value": "1"
-                },
-                {
-                  "key": "limit",
-                  "value": "10"
-                }
-              ]
-            }
-          }
-        },
-        {
-          "name": "List Events for Animal",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{accessToken}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/tracking/animal/{{animalId}}?page=1&limit=10",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "tracking",
-                "animal",
-                "{{animalId}}"
-              ],
-              "query": [
-                {
-                  "key": "page",
-                  "value": "1"
-                },
-                {
-                  "key": "limit",
-                  "value": "10"
-                }
-              ]
-            }
-          }
-        },
-        {
-          "name": "Get Tracking Event",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{accessToken}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/tracking/{{trackingEventId}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "tracking",
-                "{{trackingEventId}}"
-              ]
-            }
-          }
-        },
-        {
-          "name": "Update Tracking Event",
-          "request": {
-            "method": "PATCH",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{accessToken}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/tracking/{{trackingEventId}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "tracking",
-                "{{trackingEventId}}"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"weightKg\": 465,\n  \"notes\": \"Corrected weigh-in\"\n}"
-            }
-          }
-        },
-        {
-          "name": "Delete Tracking Event",
-          "request": {
-            "method": "DELETE",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{accessToken}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/tracking/{{trackingEventId}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "tracking",
-                "{{trackingEventId}}"
               ]
             }
           }
@@ -1238,7 +937,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"animalId\": \"{{animalId}}\",\n  \"visitDate\": \"2026-05-17T12:00:00.000Z\",\n  \"type\": \"checkup\",\n  \"diagnosis\": \"Routine check\"\n}"
+              "raw": "{\n  \"animalId\": \"{{animalId}}\",\n  \"visitDate\": \"2026-05-17T12:00:00.000Z\",\n  \"type\": \"checkup\",\n  \"reason\": \"Routine Checkup\",\n  \"status\": \"pending\"\n}"
             }
           },
           "event": [
@@ -1250,6 +949,30 @@
               }
             }
           ]
+        },
+        {
+          "name": "Visit Stats (Doctor)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/veterinary-visits/stats",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "veterinary-visits",
+                "stats"
+              ]
+            }
+          }
         },
         {
           "name": "List Visits (Doctor)",
@@ -1318,54 +1041,9 @@
               ]
             }
           }
-        }
-      ]
-    },
-    {
-      "name": "Health Records",
-      "item": [
-        {
-          "name": "Create Health Record",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{accessToken}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/health-records",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "health-records"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"animalId\": \"{{animalId}}\",\n  \"visitDate\": \"2026-05-17T12:00:00.000Z\",\n  \"type\": \"vaccination\",\n  \"vaccineName\": \"Brucellosis\",\n  \"notes\": \"Annual vaccination\",\n  \"followUpDate\": \"2026-11-17T12:00:00.000Z\"\n}"
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": "const j = pm.response.json();\nconst id = j._id || j.id;\nif (id) {\n  pm.environment.set('healthRecordId', id);\n  pm.collectionVariables.set('healthRecordId', id);\n}"
-              }
-            }
-          ]
         },
         {
-          "name": "List My Records (Doctor)",
+          "name": "Get Visit",
           "request": {
             "method": "GET",
             "header": [
@@ -1375,89 +1053,21 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/health-records?page=1&limit=10",
+              "raw": "{{baseUrl}}/api/v1/veterinary-visits/{{healthRecordId}}",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
                 "v1",
-                "health-records"
-              ],
-              "query": [
-                {
-                  "key": "page",
-                  "value": "1"
-                },
-                {
-                  "key": "limit",
-                  "value": "10"
-                }
-              ]
-            }
-          }
-        },
-        {
-          "name": "List Records for Animal",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{accessToken}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/health-records/animal/{{animalId}}?page=1&limit=10",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "health-records",
-                "animal",
-                "{{animalId}}"
-              ],
-              "query": [
-                {
-                  "key": "page",
-                  "value": "1"
-                },
-                {
-                  "key": "limit",
-                  "value": "10"
-                }
-              ]
-            }
-          }
-        },
-        {
-          "name": "Get Health Record",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{accessToken}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/health-records/{{healthRecordId}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "health-records",
+                "veterinary-visits",
                 "{{healthRecordId}}"
               ]
             }
           }
         },
         {
-          "name": "Update Health Record",
+          "name": "Update Visit",
           "request": {
             "method": "PATCH",
             "header": [
@@ -1471,27 +1081,32 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/health-records/{{healthRecordId}}",
+              "raw": "{{baseUrl}}/api/v1/veterinary-visits/{{healthRecordId}}",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
                 "v1",
-                "health-records",
+                "veterinary-visits",
                 "{{healthRecordId}}"
               ]
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"notes\": \"Booster scheduled\",\n  \"diagnosis\": \"Healthy\"\n}"
+              "raw": "{\n  \"status\": \"completed\"\n}"
             }
           }
-        },
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "item": [
         {
-          "name": "Delete Health Record",
+          "name": "List Notifications",
           "request": {
-            "method": "DELETE",
+            "method": "GET",
             "header": [
               {
                 "key": "Authorization",
@@ -1499,15 +1114,77 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/health-records/{{healthRecordId}}",
+              "raw": "{{baseUrl}}/api/v1/notifications?page=1&limit=20",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
                 "v1",
-                "health-records",
-                "{{healthRecordId}}"
+                "notifications"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Mark All Read",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/notifications/read-all",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "notifications",
+                "read-all"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Map",
+      "item": [
+        {
+          "name": "Map Markers",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/map/markers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "map",
+                "markers"
               ]
             }
           }

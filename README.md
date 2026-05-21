@@ -1,6 +1,6 @@
 # Trackpro
 
-NestJS + MongoDB backend for **Track-pro**, a livestock and animal tracking platform (farmers, veterinarians, animals, health records, and weight/location tracking). Structure mirrors [Aidport](../E-COMMERCE/AIDPORT-BACKEND).
+NestJS + MongoDB backend for **Track-pro** — livestock registry, veterinary visits, slaughterhouses, and role dashboards aligned with Figma (farmer, doctor, slaughterhouse, admin). Includes Gemini AI endpoints.
 
 Design: [Track-pro Figma](https://www.figma.com/design/BMiVgXIeVE3c23kCwL4eav/Track-pro?node-id=0-1&p=f)
 
@@ -17,12 +17,13 @@ src/
 │   ├── auth/              # Signup, login (farmer, doctor, admin)
 │   ├── user/              # Profile, settings, public doctor directory
 │   ├── doctor/            # Veterinarian profile completion
-│   ├── animal/            # Herd / animal registry (+ `/livestock` Figma alias)
-│   ├── health-record/     # Vet visits (+ `/veterinary-visits` Figma alias)
+│   ├── animal/            # Livestock (`/livestock`)
+│   ├── health-record/     # Veterinary visits (`/veterinary-visits`)
 │   ├── slaughterhouse/    # Abattoirs & slaughter scheduling
-│   ├── tracking/          # Weight, location, feeding events
-│   ├── dashboard/         # Farmer & doctor dashboards
-│   ├── admin/             # Farmer/doctor management, analytics
+│   ├── notification/      # In-app notifications
+│   ├── map/               # Map markers
+│   ├── dashboard/         # Role dashboards
+│   ├── admin/             # Platform administration
 │   ├── ai/                # Gemini livestock AI (6 endpoints)
 │   └── upload/            # Cloudinary file uploads
 ├── app.module.ts
@@ -95,53 +96,34 @@ Signup/login tests save `{{accessToken}}`. Use **Sign Up Doctor** + **Login Doct
 ### Doctor portal (protected, doctor role)
 - `PATCH /doctor/profile` — Complete veterinarian profile
 
-### Livestock `/api/v1/livestock` — Figma alias (same as `/animals`)
+### Livestock `/api/v1/livestock`
 
 | Method | Description |
 |--------|-------------|
 | POST | Create (farmer) |
-| GET | List herd |
+| GET | List herd (farmer / doctor / admin) |
 | GET `:id` | One animal |
 | PATCH `:id` | Update |
-| DELETE `:id` | Delete |
+| DELETE `:id` | Delete (farmer / admin) |
 
-### Animals `/api/v1/animals` — full CRUD (canonical)
-| Method | Description |
-|--------|-------------|
-| POST | Create (farmer) |
-| GET | List (farmer / doctor / admin) |
-| GET `:id` | One animal |
-| PATCH `:id` | **Update** animal (farmer, assigned doctor, admin) |
-| DELETE `:id` | Delete (farmer, admin) |
-
-### Tracking `/api/v1/tracking` — full CRUD (farmer)
-| Method | Description |
-|--------|-------------|
-| POST | Create event (weight updates animal `weightKg`) |
-| GET | List all events (`?animalId=` optional) |
-| GET `animal/:animalId` | List for one animal |
-| GET `:id` | One event |
-| PATCH `:id` | **Update** event |
-| DELETE `:id` | Delete event |
-
-### Veterinary visits `/api/v1/veterinary-visits` — Figma alias (same as health-records)
+### Veterinary visits `/api/v1/veterinary-visits`
 
 | Method | Description |
 |--------|-------------|
 | POST | Log visit (doctor) |
 | GET | Doctor’s visits |
+| GET `stats` | Overview metrics (doctor) |
 | GET `animal/:animalId` | Visit history per animal |
 | GET/PATCH/DELETE `:id` | One visit |
 
-### Health records `/api/v1/health-records` — full CRUD (canonical)
-| Method | Description |
-|--------|-------------|
-| POST | Create (doctor) |
-| GET | Doctor’s records |
-| GET `animal/:animalId` | By animal (farmer / doctor / admin) |
-| GET `:id` | One record |
-| PATCH `:id` | **Update** (doctor who created, or admin) |
-| DELETE `:id` | Delete (doctor who created, or admin) |
+### Notifications & map
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/notifications` | List notifications |
+| PATCH | `/notifications/:id/read` | Mark one read |
+| PATCH | `/notifications/read-all` | Mark all read |
+| GET | `/map/markers` | Livestock & facility markers |
 
 ### Slaughterhouse
 

@@ -12,9 +12,10 @@ All JSON endpoints use prefix **\`/${API_PREFIX}\`** unless noted (health & docs
 ## Roles
 | Role | Description |
 |------|-------------|
-| **farmer** | Manages farm profile, animals, and tracking events |
-| **doctor** | Veterinarian — health records, assigned animals, public directory |
-| **admin** | Approves vets, lists users, platform analytics |
+| **farmer** | Farm profile, livestock, map, notifications |
+| **doctor** | Veterinary visits, assigned livestock, public directory |
+| **slaughterhouse** | Facility profile, slaughter records, map |
+| **admin** | Farmers, livestock, vets, slaughterhouses, visits, analytics |
 
 ## Mobile & web clients
 
@@ -36,41 +37,34 @@ All JSON endpoints use prefix **\`/${API_PREFIX}\`** unless noted (health & docs
 Optional header: \`X-Client-Platform: mobile\` or \`web\`.
 
 ## Authentication
-1. \`POST /${API_PREFIX}/auth/signup\` (farmer) or \`signup/doctor\` / \`signup/admin\`
+1. \`POST /${API_PREFIX}/auth/signup\` (farmer) or \`signup/doctor\` / \`signup/slaughterhouse\` / \`signup/admin\`
 2. \`POST /${API_PREFIX}/auth/verify-email\` with OTP (except admin)
 3. \`POST /${API_PREFIX}/auth/login\` → copy \`accessToken\`
 4. Click **Authorize** above and paste the JWT (mobile & web)
 
 ## CRUD summary
 
-### Animals \`/animals\` (farmer CRUD + vet read/update)
+### Livestock \`/livestock\`
 | Method | Path | Who |
 |--------|------|-----|
-| POST | /animals | Farmer — create |
-| GET | /animals | Farmer / Doctor / Admin — list |
-| GET | /animals/:id | Farmer / Doctor / Admin — one |
-| PATCH | /animals/:id | Farmer / Doctor / Admin — **update** |
-| DELETE | /animals/:id | Farmer / Admin — delete |
+| POST | /livestock | Farmer — create |
+| GET | /livestock | Farmer / Doctor / Admin — list |
+| GET | /livestock/:id | Farmer / Doctor / Admin — one |
+| PATCH | /livestock/:id | Farmer / Doctor / Admin — update |
+| DELETE | /livestock/:id | Farmer / Admin — delete |
 
-### Health records \`/health-records\`
+### Veterinary visits \`/veterinary-visits\`
 | Method | Path | Who |
 |--------|------|-----|
-| POST | /health-records | Doctor — create |
-| GET | /health-records | Doctor — my records |
-| GET | /health-records/animal/:animalId | Farmer / Doctor / Admin — by animal |
-| GET | /health-records/:id | Farmer / Doctor / Admin — one |
-| PATCH | /health-records/:id | Doctor / Admin — **update** |
-| DELETE | /health-records/:id | Doctor / Admin — delete |
+| POST | /veterinary-visits | Doctor — create |
+| GET | /veterinary-visits | Doctor — my visits |
+| GET | /veterinary-visits/stats | Doctor — overview metrics |
+| GET | /veterinary-visits/animal/:animalId | Farmer / Doctor / Admin |
+| GET/PATCH/DELETE | /veterinary-visits/:id | By role |
 
-### Tracking \`/tracking\` (farmer only)
-| Method | Path | Who |
-|--------|------|-----|
-| POST | /tracking | Farmer — create |
-| GET | /tracking | Farmer — list all (optional ?animalId=) |
-| GET | /tracking/animal/:animalId | Farmer — by animal |
-| GET | /tracking/:id | Farmer — one |
-| PATCH | /tracking/:id | Farmer — **update** |
-| DELETE | /tracking/:id | Farmer — delete |
+### Shared (all roles): \`/notifications\`, \`/map/markers\`, \`/dashboard/me\`
+
+### AI \`/ai/*\` — unchanged (Gemini)
 
 Pagination: \`?page=1&limit=10\` on list endpoints.
 `.trim();
@@ -79,7 +73,7 @@ export function setupSwagger(app: INestApplication): void {
   const config = new DocumentBuilder()
     .setTitle('Trackpro API')
     .setDescription(
-      'Track-pro **livestock tracking** API — farmers, veterinarians, animals, health records, and weight/location logs.\n\n' +
+      'Track-pro livestock API — farmers, veterinarians, slaughterhouses, and admin (Figma-aligned).\n\n' +
         API_GUIDE,
     )
     .setVersion('1.0')

@@ -4,9 +4,10 @@ import { Types } from 'mongoose';
 import { DashboardService } from './dashboard.service';
 import { Animal } from '../animal/entities/animal.entity';
 import { HealthRecord } from '../health-record/entities/health-record.entity';
-import { TrackingEvent } from '../tracking/entities/tracking-event.entity';
 import { User } from '../user/entities/user.entity';
 import { AnimalService } from '../animal/animal.service';
+import { HealthRecordService } from '../health-record/health-record.service';
+import { SlaughterhouseService } from '../slaughterhouse/slaughterhouse.service';
 
 describe('DashboardService', () => {
   let service: DashboardService;
@@ -26,6 +27,22 @@ describe('DashboardService', () => {
           },
         },
         {
+          provide: HealthRecordService,
+          useValue: {
+            getDoctorVisitStats: jest.fn().mockResolvedValue({
+              totalVisits: 0,
+              pendingVisits: 0,
+              totalFarmers: 0,
+              totalLivestock: 0,
+            }),
+            findForDoctor: jest.fn().mockResolvedValue({ items: [], meta: {} }),
+          },
+        },
+        {
+          provide: SlaughterhouseService,
+          useValue: { listFacilities: jest.fn().mockResolvedValue([]) },
+        },
+        {
           provide: getModelToken(Animal.name),
           useValue: {
             find: jest.fn().mockReturnValue({
@@ -34,6 +51,7 @@ describe('DashboardService', () => {
               lean: jest.fn().mockResolvedValue([]),
             }),
             countDocuments: jest.fn().mockResolvedValue(0),
+            aggregate: jest.fn().mockResolvedValue([]),
             distinct: jest.fn().mockResolvedValue([]),
           },
         },
@@ -45,21 +63,12 @@ describe('DashboardService', () => {
               limit: jest.fn().mockReturnThis(),
               lean: jest.fn().mockResolvedValue([]),
             }),
-          },
-        },
-        {
-          provide: getModelToken(TrackingEvent.name),
-          useValue: {
-            find: jest.fn().mockReturnValue({
-              sort: jest.fn().mockReturnThis(),
-              limit: jest.fn().mockReturnThis(),
-              lean: jest.fn().mockResolvedValue([]),
-            }),
+            countDocuments: jest.fn().mockResolvedValue(0),
           },
         },
         {
           provide: getModelToken(User.name),
-          useValue: {},
+          useValue: { countDocuments: jest.fn().mockResolvedValue(0) },
         },
       ],
     }).compile();
@@ -73,9 +82,9 @@ describe('DashboardService', () => {
     expect(result.recentAnimals).toEqual([]);
   });
 
-  it('getDoctorDashboard returns assigned animals', async () => {
+  it('getDoctorDashboard returns visit summary', async () => {
     const result = await service.getDoctorDashboard(new Types.ObjectId().toString());
-    expect(result.assignedAnimalCount).toBe(0);
-    expect(result.recentHealthRecords).toEqual([]);
+    expect(result.totalVisits).toBe(0);
+    expect(result.recentVeterinaryVisits).toEqual([]);
   });
 });

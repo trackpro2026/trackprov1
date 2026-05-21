@@ -101,13 +101,13 @@ describe('App (e2e)', () => {
     expect(res.body.email).toBe('profile-e2e@example.com');
   });
 
-  it('/animals (POST) - register animal for farmer', async () => {
+  it('/livestock (POST) - register animal for farmer', async () => {
     const token = await signupAndLogin(app, {
       name: 'Animal Farmer',
       email: 'animal-e2e@example.com',
     });
     const res = await request(app.getHttpServer())
-      .post(api('/animals'))
+      .post(api('/livestock'))
       .set('Authorization', `Bearer ${token}`)
       .send({
         tagId: 'TAG-001',

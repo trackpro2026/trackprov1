@@ -27,7 +27,6 @@ import { RolesGuard } from '../../common/guards/roles.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Role, Roles } from '../../common/decorators/roles.decorator';
 
-/** Figma-aligned path alias — same handlers as `/health-records`. */
 @ApiTags('Veterinary Visits')
 @ApiBearerAuth(SWAGGER_BEARER)
 @Controller('veterinary-visits')
@@ -40,7 +39,7 @@ export class VeterinaryVisitsController {
   @Roles(Role.Doctor)
   @ApiOperation({
     summary: 'Log veterinary visit',
-    description: `${VETERINARY_VISITS_TAG}\n\nAlias of \`POST /health-records\`.`,
+    description: VETERINARY_VISITS_TAG,
   })
   create(@Body() dto: CreateHealthRecordDto, @CurrentUser('id') doctorId: string) {
     return this.healthRecordService.create(dto, doctorId);
@@ -54,6 +53,17 @@ export class VeterinaryVisitsController {
   @ApiQuery({ name: 'limit', required: false, example: 10 })
   findMine(@Query() pagination: PaginationDto, @CurrentUser('id') doctorId: string) {
     return this.healthRecordService.findForDoctor(doctorId, pagination);
+  }
+
+  @Get('stats')
+  @UseGuards(RolesGuard)
+  @Roles(Role.Doctor)
+  @ApiOperation({
+    summary: 'Veterinarian visit stats',
+    description: 'Figma Overview: total livestock, farmers, visits, pending visits.',
+  })
+  visitStats(@CurrentUser('id') doctorId: string) {
+    return this.healthRecordService.getDoctorVisitStats(doctorId);
   }
 
   @Get('animal/:animalId')

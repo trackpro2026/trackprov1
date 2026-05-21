@@ -10,7 +10,6 @@ import { UserModule } from './modules/user/user.module';
 import { DoctorModule } from './modules/doctor/doctor.module';
 import { AnimalModule } from './modules/animal/animal.module';
 import { HealthRecordModule } from './modules/health-record/health-record.module';
-import { TrackingModule } from './modules/tracking/tracking.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { AiModule } from './modules/ai/ai.module';
@@ -42,7 +41,6 @@ import { HealthController } from './health.controller';
     DoctorModule,
     AnimalModule,
     HealthRecordModule,
-    TrackingModule,
     UploadModule,
     AdminModule,
     DashboardModule,
