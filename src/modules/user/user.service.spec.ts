@@ -6,6 +6,7 @@ import { User } from './entities/user.entity';
 import { EncryptionService } from '../../core/encryption/encryption.service';
 import { Role } from '../../common/decorators/roles.decorator';
 import { DoctorStatus } from './entities/doctor-profile.schema';
+import { NotificationService } from '../notification/notification.service';
 
 describe('UserService', () => {
   let service: UserService;
@@ -58,6 +59,10 @@ describe('UserService', () => {
             hash: jest.fn().mockResolvedValue('hashed'),
             verify: jest.fn().mockResolvedValue(true),
           },
+        },
+        {
+          provide: NotificationService,
+          useValue: { notify: jest.fn(), createForUser: jest.fn() },
         },
       ],
     }).compile();

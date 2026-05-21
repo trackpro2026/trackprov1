@@ -25,12 +25,18 @@ import { DoctorProfileResponse, UserResponse } from './types/user-response.types
 import { PaginationDto } from '../../common/dto/pagination.dto';
 import { DoctorProfile, DoctorStatus } from './entities/doctor-profile.schema';
 import { ListDoctorsQueryDto } from './dto/list-doctors-query.dto';
+import { NotificationService } from '../notification/notification.service';
+import {
+  NotificationRelatedType,
+  NotificationType,
+} from '../notification/notification.constants';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectModel(User.name) private userModel: Model<UserDocument>,
     private encryptionService: EncryptionService,
+    private readonly notificationService: NotificationService,
   ) {}
 
   async create(createUserDto: CreateUserDto, role: Role = Role.Farmer) {
@@ -407,6 +413,25 @@ export class UserService {
       user.userState = UserAccountState.Active;
     }
     await user.save();
+
+    if (status === DoctorStatus.Approved || status === DoctorStatus.Active) {
+      void this.notificationService.notify(doctorId, {
+        title: 'Veterinarian account approved',
+        message: 'Your veterinarian profile has been approved. You can now use the vet dashboard.',
+        type: NotificationType.Account,
+        relatedId: doctorId,
+        relatedType: NotificationRelatedType.User,
+      });
+    } else if (status === DoctorStatus.Declined) {
+      void this.notificationService.notify(doctorId, {
+        title: 'Veterinarian application declined',
+        message: 'Your veterinarian application was not approved. Contact support for details.',
+        type: NotificationType.Account,
+        relatedId: doctorId,
+        relatedType: NotificationRelatedType.User,
+      });
+    }
+
     return this.toUserResponse(user);
   }
 

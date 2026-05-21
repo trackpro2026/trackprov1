@@ -5,11 +5,13 @@ import { UserService } from './user.service';
 import { UserController } from './user.controller';
 import { DoctorsController } from './doctors.controller';
 import { EncryptionModule } from '../../core/encryption/encryption.module';
+import { NotificationModule } from '../notification/notification.module';
 
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
     EncryptionModule,
+    NotificationModule,
   ],
   controllers: [UserController, DoctorsController],
   providers: [UserService],

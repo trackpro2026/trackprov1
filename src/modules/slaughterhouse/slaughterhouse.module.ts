@@ -11,10 +11,12 @@ import {
 } from './slaughterhouse.controller';
 import { SlaughterhousePortalController } from './slaughterhouse-portal.controller';
 import { UserModule } from '../user/user.module';
+import { NotificationModule } from '../notification/notification.module';
 
 @Module({
   imports: [
     UserModule,
+    NotificationModule,
     MongooseModule.forFeature([
       { name: Slaughterhouse.name, schema: SlaughterhouseSchema },
       { name: SlaughterRecord.name, schema: SlaughterRecordSchema },

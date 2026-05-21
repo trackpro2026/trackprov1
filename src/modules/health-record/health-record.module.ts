@@ -4,9 +4,11 @@ import { HealthRecord, HealthRecordSchema } from './entities/health-record.entit
 import { Animal, AnimalSchema } from '../animal/entities/animal.entity';
 import { HealthRecordService } from './health-record.service';
 import { VeterinaryVisitsController } from './veterinary-visits.controller';
+import { NotificationModule } from '../notification/notification.module';
 
 @Module({
   imports: [
+    NotificationModule,
     MongooseModule.forFeature([
       { name: HealthRecord.name, schema: HealthRecordSchema },
       { name: Animal.name, schema: AnimalSchema },

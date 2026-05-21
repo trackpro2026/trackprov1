@@ -1,34 +1,46 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Notification, NotificationDocument } from './entities/notification.entity';
 import { PaginationDto } from '../../common/dto/pagination.dto';
+import { NotificationType } from './notification.constants';
+
+export type CreateNotificationPayload = {
+  title: string;
+  message: string;
+  type?: NotificationType | string;
+  relatedId?: string;
+  relatedType?: string;
+};
 
 @Injectable()
 export class NotificationService {
+  private readonly logger = new Logger(NotificationService.name);
+
   constructor(
     @InjectModel(Notification.name)
     private notificationModel: Model<NotificationDocument>,
   ) {}
 
-  async createForUser(
-    userId: string,
-    payload: {
-      title: string;
-      message: string;
-      type?: string;
-      relatedId?: string;
-      relatedType?: string;
-    },
-  ) {
+  async createForUser(userId: string, payload: CreateNotificationPayload) {
     return this.notificationModel.create({
       userId: new Types.ObjectId(userId),
       title: payload.title,
       message: payload.message,
-      type: payload.type ?? 'general',
+      type: payload.type ?? NotificationType.General,
       relatedId: payload.relatedId,
       relatedType: payload.relatedType,
     });
+  }
+
+  /** Fire-and-forget: never fails the calling business operation. */
+  async notify(userId: string, payload: CreateNotificationPayload): Promise<void> {
+    if (!userId) return;
+    try {
+      await this.createForUser(userId, payload);
+    } catch (err) {
+      this.logger.warn(`Failed to notify user ${userId}: ${(err as Error).message}`);
+    }
   }
 
   async listForUser(userId: string, pagination: PaginationDto) {

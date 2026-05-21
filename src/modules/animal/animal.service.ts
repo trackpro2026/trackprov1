@@ -11,10 +11,18 @@ import { CreateAnimalDto } from './dto/create-animal.dto';
 import { UpdateAnimalDto } from './dto/update-animal.dto';
 import { PaginationDto } from '../../common/dto/pagination.dto';
 import { Role } from '../../common/decorators/roles.decorator';
+import { NotificationService } from '../notification/notification.service';
+import {
+  NotificationRelatedType,
+  NotificationType,
+} from '../notification/notification.constants';
 
 @Injectable()
 export class AnimalService {
-  constructor(@InjectModel(Animal.name) private animalModel: Model<AnimalDocument>) {}
+  constructor(
+    @InjectModel(Animal.name) private animalModel: Model<AnimalDocument>,
+    private readonly notificationService: NotificationService,
+  ) {}
 
   async create(dto: CreateAnimalDto, farmerId: string) {
     const existing = await this.animalModel
@@ -31,7 +39,17 @@ export class AnimalService {
         ? new Types.ObjectId(dto.assignedDoctorId)
         : undefined,
     });
-    return animal.save();
+    const saved = await animal.save();
+    if (dto.assignedDoctorId) {
+      void this.notificationService.notify(dto.assignedDoctorId, {
+        title: 'Livestock assigned to you',
+        message: `${saved.name} (${saved.tagId}) was assigned to your care.`,
+        type: NotificationType.Livestock,
+        relatedId: String(saved._id),
+        relatedType: NotificationRelatedType.Animal,
+      });
+    }
+    return saved;
   }
 
   async findForFarmer(farmerId: string, pagination: PaginationDto) {
@@ -62,7 +80,10 @@ export class AnimalService {
   }
 
   async update(id: string, dto: UpdateAnimalDto, userId: string, role: Role) {
-    await this.findOne(id, userId, role);
+    const before = await this.findOne(id, userId, role);
+    const previousDoctorId = before.assignedDoctorId
+      ? String(before.assignedDoctorId)
+      : undefined;
     const patch: Record<string, unknown> = { ...dto };
     if (dto.dateOfBirth) patch.dateOfBirth = new Date(dto.dateOfBirth);
     if (dto.assignedDoctorId) patch.assignedDoctorId = new Types.ObjectId(dto.assignedDoctorId);
@@ -71,6 +92,32 @@ export class AnimalService {
       .lean()
       .exec();
     if (!updated) throw new NotFoundException('Animal not found');
+
+    const newDoctorId = dto.assignedDoctorId ?? previousDoctorId;
+    if (newDoctorId && newDoctorId !== previousDoctorId) {
+      void this.notificationService.notify(newDoctorId, {
+        title: 'Livestock assigned to you',
+        message: `${updated.name} (${updated.tagId}) was assigned to your care.`,
+        type: NotificationType.Livestock,
+        relatedId: id,
+        relatedType: NotificationRelatedType.Animal,
+      });
+    }
+
+    if (
+      dto.healthStatus &&
+      dto.healthStatus !== before.healthStatus &&
+      updated.assignedDoctorId
+    ) {
+      void this.notificationService.notify(String(updated.assignedDoctorId), {
+        title: 'Livestock health status updated',
+        message: `${updated.name} (${updated.tagId}) is now marked ${dto.healthStatus}.`,
+        type: NotificationType.Livestock,
+        relatedId: id,
+        relatedType: NotificationRelatedType.Animal,
+      });
+    }
+
     return updated;
   }
 

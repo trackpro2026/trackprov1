@@ -14,6 +14,7 @@ import {
 import {
   SlaughterRecord,
   SlaughterRecordDocument,
+  SlaughterInspectionStatus,
   SlaughterRecordStatus,
 } from './entities/slaughter-record.entity';
 import {
@@ -28,7 +29,11 @@ import { Role } from '../../common/decorators/roles.decorator';
 import { SlaughterhouseOperatorStatus } from '../user/entities/slaughterhouse-profile.schema';
 import { CompleteSlaughterhouseProfileDto } from '../user/dto/complete-slaughterhouse-profile.dto';
 import { User, UserDocument } from '../user/entities/user.entity';
-
+import { NotificationService } from '../notification/notification.service';
+import {
+  NotificationRelatedType,
+  NotificationType,
+} from '../notification/notification.constants';
 @Injectable()
 export class SlaughterhouseService {
   constructor(
@@ -38,6 +43,7 @@ export class SlaughterhouseService {
     private recordModel: Model<SlaughterRecordDocument>,
     @InjectModel(Animal.name) private animalModel: Model<AnimalDocument>,
     @InjectModel(User.name) private userModel: Model<UserDocument>,
+    private readonly notificationService: NotificationService,
   ) {}
 
   async linkFacilityForOperator(operatorId: string, dto: CompleteSlaughterhouseProfileDto) {
@@ -157,7 +163,29 @@ export class SlaughterhouseService {
       liveWeightKg: dto.liveWeightKg,
       anteMortemNotes: dto.anteMortemNotes,
     });
-    return record.save();
+    const saved = await record.save();
+    const recordId = String(saved._id);
+    const dateLabel = saved.scheduledDate.toISOString().slice(0, 10);
+
+    void this.notificationService.notify(farmerId, {
+      title: 'Slaughter scheduled',
+      message: `Slaughter for ${animal.name} is scheduled at ${facility.name} on ${dateLabel}.`,
+      type: NotificationType.Slaughter,
+      relatedId: recordId,
+      relatedType: NotificationRelatedType.SlaughterRecord,
+    });
+
+    if (facility.ownerId) {
+      void this.notificationService.notify(facility.ownerId, {
+        title: 'New slaughter booking',
+        message: `${animal.name} (${animal.species}) was scheduled at your facility on ${dateLabel}.`,
+        type: NotificationType.Slaughter,
+        relatedId: recordId,
+        relatedType: NotificationRelatedType.SlaughterRecord,
+      });
+    }
+
+    return saved;
   }
 
   async findRecords(userId: string, role: Role, pagination: PaginationDto) {
@@ -206,6 +234,9 @@ export class SlaughterhouseService {
     if (dto.liveWeightKg !== undefined) record.liveWeightKg = dto.liveWeightKg;
     if (dto.carcassWeightKg !== undefined) record.carcassWeightKg = dto.carcassWeightKg;
     if (dto.inspectionStatus) record.inspectionStatus = dto.inspectionStatus;
+    const previousStatus = record.status;
+    const previousInspection = record.inspectionStatus;
+
     if (dto.status) record.status = dto.status;
     if (dto.certificateNumber) record.certificateNumber = dto.certificateNumber;
     if (dto.anteMortemNotes !== undefined) record.anteMortemNotes = dto.anteMortemNotes;
@@ -219,7 +250,15 @@ export class SlaughterhouseService {
       record.completedDate = new Date();
     }
 
-    return record.save();
+    const saved = await record.save();
+    await this.notifySlaughterRecordChanges(saved, {
+      previousStatus,
+      previousInspection,
+      statusChanged: dto.status !== undefined && dto.status !== previousStatus,
+      inspectionChanged:
+        dto.inspectionStatus !== undefined && dto.inspectionStatus !== previousInspection,
+    });
+    return saved;
   }
 
   async removeRecord(id: string, userId: string, role: Role) {
@@ -237,6 +276,63 @@ export class SlaughterhouseService {
 
     await this.recordModel.findByIdAndDelete(id).exec();
     return { message: 'Slaughter record removed' };
+  }
+
+  private async notifySlaughterRecordChanges(
+    record: SlaughterRecordDocument,
+    ctx: {
+      previousStatus: SlaughterRecordStatus;
+      previousInspection: SlaughterInspectionStatus;
+      statusChanged: boolean;
+      inspectionChanged: boolean;
+    },
+  ) {
+    const recordId = String(record._id);
+    const animalLabel = record.animalName ?? 'Livestock';
+    const farmerId = String(record.farmerId);
+
+    if (ctx.statusChanged) {
+      if (record.status === SlaughterRecordStatus.Completed) {
+        void this.notificationService.notify(farmerId, {
+          title: 'Slaughter completed',
+          message: `Slaughter for ${animalLabel} has been completed.`,
+          type: NotificationType.Slaughter,
+          relatedId: recordId,
+          relatedType: NotificationRelatedType.SlaughterRecord,
+        });
+      } else if (record.status === SlaughterRecordStatus.Cancelled) {
+        void this.notificationService.notify(farmerId, {
+          title: 'Slaughter cancelled',
+          message: `The scheduled slaughter for ${animalLabel} was cancelled.`,
+          type: NotificationType.Slaughter,
+          relatedId: recordId,
+          relatedType: NotificationRelatedType.SlaughterRecord,
+        });
+        const facility = await this.facilityModel.findById(record.slaughterhouseId).lean().exec();
+        if (facility?.ownerId) {
+          void this.notificationService.notify(facility.ownerId, {
+            title: 'Slaughter booking cancelled',
+            message: `A booking for ${animalLabel} was cancelled.`,
+            type: NotificationType.Slaughter,
+            relatedId: recordId,
+            relatedType: NotificationRelatedType.SlaughterRecord,
+          });
+        }
+      }
+    }
+
+    if (
+      ctx.inspectionChanged &&
+      record.inspectionStatus !== SlaughterInspectionStatus.Pending
+    ) {
+      void this.notificationService.notify(farmerId, {
+        title: 'Slaughter inspection update',
+        message: `Inspection for ${animalLabel} is now ${record.inspectionStatus}.`,
+        type: NotificationType.Slaughter,
+        relatedId: recordId,
+        relatedType: NotificationRelatedType.SlaughterRecord,
+      });
+    }
   }
 
   private async paginateRecords(filter: Record<string, unknown>, pagination: PaginationDto) {

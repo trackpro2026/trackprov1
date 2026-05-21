@@ -11,12 +11,18 @@ import { UpdateHealthRecordDto } from './dto/update-health-record.dto';
 import { PaginationDto } from '../../common/dto/pagination.dto';
 import { Animal, AnimalDocument } from '../animal/entities/animal.entity';
 import { Role } from '../../common/decorators/roles.decorator';
+import { NotificationService } from '../notification/notification.service';
+import {
+  NotificationRelatedType,
+  NotificationType,
+} from '../notification/notification.constants';
 
 @Injectable()
 export class HealthRecordService {
   constructor(
     @InjectModel(HealthRecord.name) private healthRecordModel: Model<HealthRecordDocument>,
     @InjectModel(Animal.name) private animalModel: Model<AnimalDocument>,
+    private readonly notificationService: NotificationService,
   ) {}
 
   async create(dto: CreateHealthRecordDto, doctorId: string) {
@@ -40,7 +46,17 @@ export class HealthRecordService {
       notes: dto.notes,
       followUpDate: dto.followUpDate ? new Date(dto.followUpDate) : undefined,
     });
-    return record.save();
+    const saved = await record.save();
+    const visitId = String(saved._id);
+    const reason = saved.reason ?? saved.type;
+    void this.notificationService.notify(String(animal.farmerId), {
+      title: 'Veterinary visit logged',
+      message: `A ${saved.type} visit was scheduled for ${animal.name} (${animal.tagId}): ${reason}.`,
+      type: NotificationType.VeterinaryVisit,
+      relatedId: visitId,
+      relatedType: NotificationRelatedType.HealthRecord,
+    });
+    return saved;
   }
 
   async findOne(id: string, userId: string, role: Role) {
@@ -115,7 +131,12 @@ export class HealthRecordService {
     if (dto.vaccineName !== undefined) record.vaccineName = dto.vaccineName;
     if (dto.medication !== undefined) record.medication = dto.medication;
     if (dto.notes !== undefined) record.notes = dto.notes;
-    return record.save();
+    const previousStatus = record.status;
+    const saved = await record.save();
+    if (dto.status !== undefined && dto.status !== previousStatus) {
+      await this.notifyVisitStatusChange(saved, previousStatus);
+    }
+    return saved;
   }
 
   async remove(id: string, userId: string, role: Role) {
@@ -124,8 +145,36 @@ export class HealthRecordService {
     if (role !== Role.Admin && String(record.doctorId) !== userId) {
       throw new ForbiddenException('Only the veterinarian who created this record can delete it');
     }
+    const animal = await this.animalModel.findById(record.animalId).lean().exec();
     await this.healthRecordModel.findByIdAndDelete(id).exec();
+    if (animal) {
+      void this.notificationService.notify(String(record.farmerId), {
+        title: 'Veterinary visit removed',
+        message: `A visit for ${animal.name} (${animal.tagId}) was removed from your records.`,
+        type: NotificationType.VeterinaryVisit,
+        relatedId: id,
+        relatedType: NotificationRelatedType.HealthRecord,
+      });
+    }
     return { message: 'Health record removed' };
+  }
+
+  private async notifyVisitStatusChange(
+    record: HealthRecordDocument,
+    previousStatus: VisitStatus,
+  ) {
+    if (record.status !== VisitStatus.Completed || previousStatus === VisitStatus.Completed) {
+      return;
+    }
+    const animal = await this.animalModel.findById(record.animalId).lean().exec();
+    const label = animal ? `${animal.name} (${animal.tagId})` : 'your livestock';
+    void this.notificationService.notify(String(record.farmerId), {
+      title: 'Veterinary visit completed',
+      message: `The visit for ${label} has been marked completed.`,
+      type: NotificationType.VeterinaryVisit,
+      relatedId: String(record._id),
+      relatedType: NotificationRelatedType.HealthRecord,
+    });
   }
 
   private async paginate(filter: Record<string, unknown>, pagination: PaginationDto) {

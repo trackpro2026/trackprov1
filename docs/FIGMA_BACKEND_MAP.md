@@ -109,8 +109,23 @@ Requires `GEMINI_API_KEY`.
 
 ---
 
+## In-app notifications (auto-created)
+
+| Event | Recipient |
+|-------|-----------|
+| Vet logs visit | Farmer |
+| Visit marked completed | Farmer |
+| Visit deleted | Farmer |
+| Livestock assigned to vet | Doctor |
+| Livestock health status changes | Assigned doctor |
+| Slaughter scheduled | Farmer + slaughterhouse operator |
+| Slaughter completed / cancelled / inspection | Farmer (+ operator on cancel) |
+| Admin approves / declines vet | Doctor |
+
+List: `GET /notifications`. Push/email delivery is still out of scope.
+
 ## Still not in Figma / backend
 
 - Marketplace / buy-sell livestock
 - Social login (Google / Apple) — UI only today
-- Push notification delivery — in-app list only; create via `NotificationService.createForUser()` from other modules when you wire events
+- Push / email notification delivery (in-app records only)
