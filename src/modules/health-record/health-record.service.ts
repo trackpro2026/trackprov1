@@ -1,7 +1,11 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { HealthRecord, HealthRecordDocument } from './entities/health-record.entity';
+import {
+  HealthRecord,
+  HealthRecordDocument,
+  VisitStatus,
+} from './entities/health-record.entity';
 import { CreateHealthRecordDto } from './dto/create-health-record.dto';
 import { UpdateHealthRecordDto } from './dto/update-health-record.dto';
 import { PaginationDto } from '../../common/dto/pagination.dto';
@@ -27,6 +31,8 @@ export class HealthRecordService {
       farmerId: animal.farmerId,
       visitDate: new Date(dto.visitDate),
       type: dto.type,
+      reason: dto.reason ?? dto.type,
+      status: dto.status ?? VisitStatus.Pending,
       diagnosis: dto.diagnosis,
       treatment: dto.treatment,
       vaccineName: dto.vaccineName,
@@ -66,7 +72,28 @@ export class HealthRecordService {
   }
 
   async findForDoctor(doctorId: string, pagination: PaginationDto) {
-    return this.paginate({ doctorId: new Types.ObjectId(doctorId) }, pagination);
+    return this.paginateEnriched({ doctorId: new Types.ObjectId(doctorId) }, pagination);
+  }
+
+  async getDoctorVisitStats(doctorId: string) {
+    const did = new Types.ObjectId(doctorId);
+    const [totalVisits, pendingVisits, farmerIds, animalIds] = await Promise.all([
+      this.healthRecordModel.countDocuments({ doctorId: did }),
+      this.healthRecordModel.countDocuments({ doctorId: did, status: VisitStatus.Pending }),
+      this.healthRecordModel.distinct('farmerId', { doctorId: did }),
+      this.healthRecordModel.distinct('animalId', { doctorId: did }),
+    ]);
+    const assignedAnimals = await this.animalModel.countDocuments({ assignedDoctorId: did });
+    return {
+      totalVisits,
+      pendingVisits,
+      totalFarmers: farmerIds.length,
+      totalLivestock: Math.max(animalIds.length, assignedAnimals),
+    };
+  }
+
+  async findAllEnriched(pagination: PaginationDto) {
+    return this.paginateEnriched({}, pagination);
   }
 
   async update(id: string, dto: UpdateHealthRecordDto, userId: string, role: Role) {
@@ -81,6 +108,8 @@ export class HealthRecordService {
     if (dto.visitDate) record.visitDate = new Date(dto.visitDate);
     if (dto.followUpDate) record.followUpDate = new Date(dto.followUpDate);
     if (dto.type !== undefined) record.type = dto.type;
+    if (dto.reason !== undefined) record.reason = dto.reason;
+    if (dto.status !== undefined) record.status = dto.status;
     if (dto.diagnosis !== undefined) record.diagnosis = dto.diagnosis;
     if (dto.treatment !== undefined) record.treatment = dto.treatment;
     if (dto.vaccineName !== undefined) record.vaccineName = dto.vaccineName;
@@ -111,5 +140,49 @@ export class HealthRecordService {
       this.healthRecordModel.countDocuments(filter),
     ]);
     return { items, meta: { total, page, limit, totalPages: Math.ceil(total / limit) } };
+  }
+
+  private async paginateEnriched(filter: Record<string, unknown>, pagination: PaginationDto) {
+    const { page = 1, limit = 10 } = pagination;
+    const skip = (page - 1) * limit;
+    const [items, total] = await Promise.all([
+      this.healthRecordModel.aggregate([
+        { $match: filter },
+        { $sort: { visitDate: -1 } },
+        { $skip: skip },
+        { $limit: limit },
+        {
+          $lookup: {
+            from: 'users',
+            localField: 'farmerId',
+            foreignField: '_id',
+            as: 'farmerDoc',
+          },
+        },
+        {
+          $lookup: {
+            from: 'animals',
+            localField: 'animalId',
+            foreignField: '_id',
+            as: 'animalDoc',
+          },
+        },
+        {
+          $addFields: {
+            farmerName: { $arrayElemAt: ['$farmerDoc.name', 0] },
+            livestockId: { $toString: { $arrayElemAt: ['$animalDoc._id', 0] } },
+            livestockType: { $arrayElemAt: ['$animalDoc.species', 0] },
+            animalName: { $arrayElemAt: ['$animalDoc.name', 0] },
+            tagId: { $arrayElemAt: ['$animalDoc.tagId', 0] },
+          },
+        },
+        { $project: { farmerDoc: 0, animalDoc: 0 } },
+      ]),
+      this.healthRecordModel.countDocuments(filter),
+    ]);
+    return {
+      items: items.map((r) => ({ ...r, id: String(r._id) })),
+      meta: { total, page, limit, totalPages: Math.ceil(total / limit) },
+    };
   }
 }

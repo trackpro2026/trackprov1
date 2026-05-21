@@ -22,6 +22,12 @@ export class DashboardController {
     if (role === Role.Doctor) {
       return this.dashboardService.getDoctorDashboard(userId);
     }
+    if (role === Role.Slaughterhouse) {
+      return this.dashboardService.getSlaughterhouseDashboard(userId);
+    }
+    if (role === Role.Admin) {
+      return this.dashboardService.getAdminDashboard();
+    }
     return this.dashboardService.getFarmerDashboard(userId);
   }
 
@@ -37,5 +43,12 @@ export class DashboardController {
   @Roles(Role.Doctor)
   getDoctorDashboard(@CurrentUser('id') doctorId: string) {
     return this.dashboardService.getDoctorDashboard(doctorId);
+  }
+
+  @Get('slaughterhouse')
+  @UseGuards(RolesGuard)
+  @Roles(Role.Slaughterhouse)
+  getSlaughterhouseDashboard(@CurrentUser('id') operatorId: string) {
+    return this.dashboardService.getSlaughterhouseDashboard(operatorId);
   }
 }

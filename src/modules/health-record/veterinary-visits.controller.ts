@@ -18,7 +18,7 @@ import {
 } from '@nestjs/swagger';
 import { HealthRecordService } from './health-record.service';
 import { SWAGGER_BEARER } from '../../common/swagger/swagger.setup';
-import { HEALTH_RECORDS_TAG } from '../../common/swagger/api-descriptions';
+import { VETERINARY_VISITS_TAG } from '../../common/swagger/api-descriptions';
 import { CreateHealthRecordDto } from './dto/create-health-record.dto';
 import { UpdateHealthRecordDto } from './dto/update-health-record.dto';
 import { PaginationDto } from '../../common/dto/pagination.dto';
@@ -27,19 +27,20 @@ import { RolesGuard } from '../../common/guards/roles.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Role, Roles } from '../../common/decorators/roles.decorator';
 
-@ApiTags('Veterinary Visits', 'Health Records')
+/** Figma-aligned path alias — same handlers as `/health-records`. */
+@ApiTags('Veterinary Visits')
 @ApiBearerAuth(SWAGGER_BEARER)
-@Controller('health-records')
+@Controller('veterinary-visits')
 @UseGuards(JwtAuthGuard)
-export class HealthRecordController {
+export class VeterinaryVisitsController {
   constructor(private readonly healthRecordService: HealthRecordService) {}
 
   @Post()
   @UseGuards(RolesGuard)
   @Roles(Role.Doctor)
   @ApiOperation({
-    summary: 'Create health record',
-    description: `${HEALTH_RECORDS_TAG}\n\n**Create** — Log a visit, vaccination, or treatment for an animal.`,
+    summary: 'Log veterinary visit',
+    description: `${VETERINARY_VISITS_TAG}\n\nAlias of \`POST /health-records\`.`,
   })
   create(@Body() dto: CreateHealthRecordDto, @CurrentUser('id') doctorId: string) {
     return this.healthRecordService.create(dto, doctorId);
@@ -48,33 +49,15 @@ export class HealthRecordController {
   @Get()
   @UseGuards(RolesGuard)
   @Roles(Role.Doctor)
-  @ApiOperation({
-    summary: 'List my health records',
-    description: '**Read (list)** — All records created by the logged-in veterinarian (paginated).',
-  })
+  @ApiOperation({ summary: 'List my veterinary visits' })
   @ApiQuery({ name: 'page', required: false, example: 1 })
   @ApiQuery({ name: 'limit', required: false, example: 10 })
   findMine(@Query() pagination: PaginationDto, @CurrentUser('id') doctorId: string) {
     return this.healthRecordService.findForDoctor(doctorId, pagination);
   }
 
-  @Get('stats')
-  @UseGuards(RolesGuard)
-  @Roles(Role.Doctor)
-  @ApiOperation({
-    summary: 'Veterinarian visit stats',
-    description: 'Figma Overview cards: total livestock, farmers, visits, pending visits.',
-  })
-  visitStats(@CurrentUser('id') doctorId: string) {
-    return this.healthRecordService.getDoctorVisitStats(doctorId);
-  }
-
   @Get('animal/:animalId')
-  @ApiOperation({
-    summary: 'List health records for an animal',
-    description:
-      '**Read (list by animal)** — Farmer (own animal), assigned doctor, or admin can view visit history for one animal.',
-  })
+  @ApiOperation({ summary: 'Visit history for one animal' })
   @ApiParam({ name: 'animalId', description: 'MongoDB animal _id' })
   findForAnimal(
     @Param('animalId') animalId: string,
@@ -86,11 +69,7 @@ export class HealthRecordController {
   }
 
   @Get(':id')
-  @ApiOperation({
-    summary: 'Get health record by ID',
-    description: '**Read (one)** — Single visit record. Farmer (own herd), creating doctor, or admin.',
-  })
-  @ApiParam({ name: 'id', description: 'MongoDB health record _id' })
+  @ApiOperation({ summary: 'Get veterinary visit by ID' })
   findOne(
     @Param('id') id: string,
     @CurrentUser('id') userId: string,
@@ -102,12 +81,7 @@ export class HealthRecordController {
   @Patch(':id')
   @UseGuards(RolesGuard)
   @Roles(Role.Doctor, Role.Admin)
-  @ApiOperation({
-    summary: 'Update health record',
-    description:
-      '**Update** — Correct or extend a visit (diagnosis, treatment, follow-up date, etc.). Only the doctor who created the record, or admin.',
-  })
-  @ApiParam({ name: 'id', description: 'MongoDB health record _id' })
+  @ApiOperation({ summary: 'Update veterinary visit' })
   update(
     @Param('id') id: string,
     @Body() dto: UpdateHealthRecordDto,
@@ -120,11 +94,7 @@ export class HealthRecordController {
   @Delete(':id')
   @UseGuards(RolesGuard)
   @Roles(Role.Doctor, Role.Admin)
-  @ApiOperation({
-    summary: 'Delete health record',
-    description: '**Delete** — Remove a visit record. Only the creating doctor or admin.',
-  })
-  @ApiParam({ name: 'id', description: 'MongoDB health record _id' })
+  @ApiOperation({ summary: 'Delete veterinary visit' })
   remove(
     @Param('id') id: string,
     @CurrentUser('id') userId: string,

@@ -14,6 +14,9 @@ import { TrackingModule } from './modules/tracking/tracking.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { AiModule } from './modules/ai/ai.module';
+import { SlaughterhouseModule } from './modules/slaughterhouse/slaughterhouse.module';
+import { NotificationModule } from './modules/notification/notification.module';
+import { MapModule } from './modules/map/map.module';
 import { UploadModule } from './modules/upload/upload.module';
 import { EncryptionModule } from './core/encryption/encryption.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
@@ -44,6 +47,9 @@ import { HealthController } from './health.controller';
     AdminModule,
     DashboardModule,
     AiModule,
+    SlaughterhouseModule,
+    NotificationModule,
+    MapModule,
   ],
   controllers: [HealthController],
   providers: [

@@ -99,6 +99,24 @@ export class AuthService {
     return this.signUp(createUserDto, Role.Admin);
   }
 
+  async signUpSlaughterhouse(createUserDto: CreateUserDto) {
+    const user = (await this.userService.create(createUserDto, Role.Slaughterhouse)) as UserResponse;
+    const token = this.generateToken(user.id, user.role);
+    const otp = randomBytes(4).toString('hex').toUpperCase();
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
+    await this.userService.setEmailVerificationToken(user.id, otp, expiresAt);
+    if (this.emailService.isConfigured()) {
+      await this.sendSignupVerificationMailBestEffort(
+        user.email,
+        user.name,
+        otp,
+        'slaughterhouse_signup_verification',
+        user.id,
+      );
+    }
+    return { user, ...token };
+  }
+
   async login(loginDto: LoginDto, clientMeta?: LoginClientMeta) {
     const user = await this.userService.findByEmail(loginDto.email);
     if (!user) {
@@ -153,6 +171,14 @@ export class AuthService {
     const result = await this.login(loginDto, clientMeta);
     if (result.user.role !== Role.Doctor) {
       throw new ForbiddenException('Only veterinarian accounts can sign in here');
+    }
+    return result;
+  }
+
+  async loginSlaughterhouse(loginDto: LoginDto, clientMeta?: LoginClientMeta) {
+    const result = await this.login(loginDto, clientMeta);
+    if (result.user.role !== Role.Slaughterhouse) {
+      throw new ForbiddenException('Only slaughterhouse accounts can sign in here');
     }
     return result;
   }

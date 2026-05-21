@@ -6,6 +6,9 @@ import { HealthRecord, HealthRecordDocument } from '../health-record/entities/he
 import { TrackingEvent, TrackingEventDocument } from '../tracking/entities/tracking-event.entity';
 import { User, UserDocument } from '../user/entities/user.entity';
 import { AnimalService } from '../animal/animal.service';
+import { HealthRecordService } from '../health-record/health-record.service';
+import { SlaughterhouseService } from '../slaughterhouse/slaughterhouse.service';
+import { VisitStatus } from '../health-record/entities/health-record.entity';
 
 @Injectable()
 export class DashboardService {
@@ -15,6 +18,8 @@ export class DashboardService {
     @InjectModel(TrackingEvent.name) private trackingModel: Model<TrackingEventDocument>,
     @InjectModel(User.name) private userModel: Model<UserDocument>,
     private readonly animalService: AnimalService,
+    private readonly healthRecordService: HealthRecordService,
+    private readonly slaughterhouseService: SlaughterhouseService,
   ) {}
 
   async getFarmerDashboard(farmerId: string) {
@@ -25,34 +30,91 @@ export class DashboardService {
       this.trackingModel.find({ farmerId: uid }).sort({ recordedAt: -1 }).limit(5).lean(),
       this.animalModel.countDocuments({ farmerId: uid, healthStatus: 'sick' }),
     ]);
+    const livestockTable = await this.animalModel.aggregate([
+      { $match: { farmerId: uid } },
+      { $sort: { updatedAt: -1 } },
+      { $limit: 10 },
+      {
+        $lookup: {
+          from: 'healthrecords',
+          let: { aid: '$_id' },
+          pipeline: [
+            { $match: { $expr: { $eq: ['$animalId', '$$aid'] }, type: 'vaccination' } },
+            { $sort: { visitDate: -1 } },
+            { $limit: 1 },
+          ],
+          as: 'lastVax',
+        },
+      },
+      {
+        $addFields: {
+          livestockId: { $toString: '$_id' },
+          lastVaccinationDate: { $arrayElemAt: ['$lastVax.visitDate', 0] },
+        },
+      },
+      { $project: { lastVax: 0 } },
+    ]);
+
+    const healthyCount = await this.animalModel.countDocuments({
+      farmerId: uid,
+      healthStatus: 'healthy',
+    });
+    const onTreatmentCount = await this.animalModel.countDocuments({
+      farmerId: uid,
+      healthStatus: { $in: ['sick', 'under_treatment'] },
+    });
+
     return {
       animalStats,
       sickCount,
+      totalLivestock: animalStats.totalActive,
+      healthyLivestock: healthyCount,
+      livestockOnTreatment: onTreatmentCount,
       recentAnimals,
+      livestockTable,
       recentTracking,
     };
   }
 
   async getDoctorDashboard(doctorId: string) {
     const did = new Types.ObjectId(doctorId);
-    const [assignedAnimals, recentRecords, farmerCount] = await Promise.all([
+    const [assignedAnimals, visitStats, recentVisits] = await Promise.all([
       this.animalModel
         .find({ assignedDoctorId: did })
         .sort({ updatedAt: -1 })
         .limit(10)
         .lean(),
-      this.healthRecordModel
-        .find({ doctorId: did })
-        .sort({ visitDate: -1 })
-        .limit(10)
-        .lean(),
-      this.animalModel.distinct('farmerId', { assignedDoctorId: did }),
+      this.healthRecordService.getDoctorVisitStats(doctorId),
+      this.healthRecordService.findForDoctor(doctorId, { page: 1, limit: 10 }),
     ]);
     return {
-      assignedAnimalCount: assignedAnimals.length,
-      farmerCount: farmerCount.length,
+      ...visitStats,
       assignedAnimals,
-      recentHealthRecords: recentRecords,
+      recentVeterinaryVisits: recentVisits.items,
+    };
+  }
+
+  async getSlaughterhouseDashboard(operatorId: string) {
+    return this.slaughterhouseService.getOperatorOverview(operatorId);
+  }
+
+  async getAdminDashboard() {
+    const [farmers, doctors, animals, healthRecords, slaughterhouses, pendingVisits] =
+      await Promise.all([
+        this.userModel.countDocuments({ role: 'farmer' }),
+        this.userModel.countDocuments({ role: 'doctor' }),
+        this.animalModel.countDocuments(),
+        this.healthRecordModel.countDocuments(),
+        this.slaughterhouseService.listFacilities(true).then((f) => f.length),
+        this.healthRecordModel.countDocuments({ status: VisitStatus.Pending }),
+      ]);
+    return {
+      farmers,
+      doctors,
+      animals,
+      healthRecords,
+      slaughterhouses,
+      pendingVisits,
     };
   }
 }

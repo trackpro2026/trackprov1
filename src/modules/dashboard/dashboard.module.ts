@@ -7,10 +7,14 @@ import { HealthRecord, HealthRecordSchema } from '../health-record/entities/heal
 import { TrackingEvent, TrackingEventSchema } from '../tracking/entities/tracking-event.entity';
 import { User, UserSchema } from '../user/entities/user.entity';
 import { AnimalModule } from '../animal/animal.module';
+import { HealthRecordModule } from '../health-record/health-record.module';
+import { SlaughterhouseModule } from '../slaughterhouse/slaughterhouse.module';
 
 @Module({
   imports: [
     AnimalModule,
+    HealthRecordModule,
+    SlaughterhouseModule,
     MongooseModule.forFeature([
       { name: Animal.name, schema: AnimalSchema },
       { name: HealthRecord.name, schema: HealthRecordSchema },

@@ -1,10 +1,14 @@
 /** Shared Swagger copy — imported by controllers via @ApiOperation({ description: ... }) */
 
-export const ANIMALS_TAG =
-  'Register and manage livestock on a farm (ear tag, species, weight, assigned vet). Full CRUD for farmers; vets see assigned animals; admins see all.';
+export const LIVESTOCK_TAG =
+  'Livestock herd registry (Figma: Livestock). Ear tag, species, weight, assigned vet. Same data as `/animals`.';
 
-export const HEALTH_RECORDS_TAG =
-  'Veterinary visits, vaccinations, and treatments linked to an animal. Doctors create and maintain records; farmers can read records for their herd.';
+export const ANIMALS_TAG = LIVESTOCK_TAG;
+
+export const VETERINARY_VISITS_TAG =
+  'Veterinary visits module (Figma). Checkups, vaccinations, treatments, emergencies. Same data as `/health-records`.';
+
+export const HEALTH_RECORDS_TAG = VETERINARY_VISITS_TAG;
 
 export const TRACKING_TAG =
   'Weight, location, and feeding logs over time. Farmers log events; weight entries also update the animal’s current weightKg.';
@@ -26,3 +30,6 @@ export const UPLOAD_TAG = 'Cloudinary file uploads; URLs saved to farmer, doctor
 
 export const AI_TAG =
   'Gemini-powered livestock AI: photo triage, multilingual vet chat, outbreak detection, health scoring, vaccination scheduling, and surveillance reports. Requires GEMINI_API_KEY.';
+
+export const SLAUGHTERHOUSE_TAG =
+  'Slaughterhouse module (Figma). Licensed facilities and per-animal slaughter scheduling, ante/post-mortem inspection, and certificates.';

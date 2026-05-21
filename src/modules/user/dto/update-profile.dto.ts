@@ -40,4 +40,17 @@ export class UpdateProfileDto {
   @IsOptional()
   @IsString()
   assignedDoctorId?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(300)
+  address?: string;
+
+  @IsOptional()
+  @IsNumber()
+  latitude?: number;
+
+  @IsOptional()
+  @IsNumber()
+  longitude?: number;
 }

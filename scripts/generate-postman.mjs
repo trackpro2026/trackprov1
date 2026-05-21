@@ -121,6 +121,8 @@ const collection = {
     { key: 'animalId', value: '' },
     { key: 'healthRecordId', value: '' },
     { key: 'trackingEventId', value: '' },
+    { key: 'slaughterhouseId', value: '' },
+    { key: 'slaughterRecordId', value: '' },
     { key: 'uploadUrl', value: '' },
   ],
   item: [
@@ -164,6 +166,16 @@ const collection = {
           body: { name: 'Admin User', email: 'admin@example.com', password: 'password123' },
           test: saveToken,
         }),
+        req('Sign Up Slaughterhouse', 'POST', '/auth/signup/slaughterhouse', {
+          public: true,
+          body: {
+            name: 'Abattoir Operator',
+            email: 'slaughter@example.com',
+            phone: '+2348012345678',
+            password: 'password123',
+          },
+          test: saveToken,
+        }),
         req('Login Farmer', 'POST', '/auth/login', {
           public: true,
           body: { email: 'farmer@example.com', password: 'password123' },
@@ -175,6 +187,11 @@ const collection = {
           body: { email: 'doctor@example.com', password: 'password123' },
           test: saveToken,
           description: '403 if account is not role doctor.',
+        }),
+        req('Login Slaughterhouse', 'POST', '/auth/login/slaughterhouse', {
+          public: true,
+          body: { email: 'slaughter@example.com', password: 'password123' },
+          test: saveToken,
         }),
         req('Verify Email', 'POST', '/auth/verify-email', {
           public: true,
@@ -242,6 +259,25 @@ const collection = {
       ],
     },
     {
+      name: 'Livestock',
+      item: [
+        req('Create Livestock', 'POST', '/livestock', {
+          body: {
+            tagId: 'EAR-002',
+            name: 'Duke',
+            species: 'goat',
+            breed: 'Boer',
+            sex: 'male',
+            healthStatus: 'healthy',
+          },
+          test: saveAnimalId,
+          description: 'Figma alias of POST /animals.',
+        }),
+        req('List Livestock', 'GET', '/livestock?page=1&limit=10'),
+        req('Get Livestock', 'GET', '/livestock/{{animalId}}'),
+      ],
+    },
+    {
       name: 'Animals',
       item: [
         req('Create Animal', 'POST', '/animals', {
@@ -299,6 +335,22 @@ const collection = {
       ],
     },
     {
+      name: 'Veterinary Visits',
+      item: [
+        req('Log Visit', 'POST', '/veterinary-visits', {
+          body: {
+            animalId: '{{animalId}}',
+            visitDate: '2026-05-17T12:00:00.000Z',
+            type: 'checkup',
+            diagnosis: 'Routine check',
+          },
+          test: saveHealthRecordId,
+        }),
+        req('List Visits (Doctor)', 'GET', '/veterinary-visits?page=1&limit=10'),
+        req('List Visits for Animal', 'GET', '/veterinary-visits/animal/{{animalId}}?page=1&limit=10'),
+      ],
+    },
+    {
       name: 'Health Records',
       item: [
         req('Create Health Record', 'POST', '/health-records', {
@@ -319,6 +371,66 @@ const collection = {
           body: { notes: 'Booster scheduled', diagnosis: 'Healthy' },
         }),
         req('Delete Health Record', 'DELETE', '/health-records/{{healthRecordId}}'),
+      ],
+    },
+    {
+      name: 'Slaughterhouse',
+      item: [
+        req('List Approved Facilities', 'GET', '/slaughterhouses', { public: true }),
+        req('List All Facilities (Admin)', 'GET', '/slaughterhouses/all'),
+        req('Create Facility (Admin)', 'POST', '/slaughterhouses', {
+          body: {
+            name: 'Kano Central Abattoir',
+            location: 'Kano, Nigeria',
+            state: 'Kano',
+            licenseNumber: 'ABT-2024-001',
+            contactPhone: '+2348000000000',
+          },
+        }),
+        req('Schedule Slaughter', 'POST', '/slaughter-records', {
+          body: {
+            animalId: '{{animalId}}',
+            slaughterhouseId: '{{slaughterhouseId}}',
+            scheduledDate: '2026-06-01T08:00:00.000Z',
+            liveWeightKg: 450,
+          },
+        }),
+        req('List Slaughter Records', 'GET', '/slaughter-records?page=1&limit=10'),
+      ],
+    },
+    {
+      name: 'AI',
+      item: [
+        req('Health Check (Photo)', 'POST', '/ai/health-check', {
+          body: {
+            image: 'base64-image-here',
+            animalType: 'cattle',
+            animalId: '{{animalId}}',
+          },
+        }),
+        req('Vet Assistant Chat', 'POST', '/ai/vet-assistant', {
+          body: { message: 'My goat has watery eyes', language: 'en' },
+        }),
+        req('Guardian Outbreak', 'POST', '/ai/guardian', {
+          body: {
+            recentCases: [{ species: 'goat', diagnosis: 'PPR', location: 'Kano' }],
+            region: 'Kano',
+          },
+        }),
+        req('Health Score', 'POST', '/ai/health-score', {
+          body: { animalId: '{{animalId}}', species: 'cattle' },
+        }),
+        req('Vaccination Schedule', 'POST', '/ai/vaccination-schedule', {
+          body: { animalId: '{{animalId}}', species: 'cattle' },
+        }),
+        req('Surveillance Report', 'POST', '/ai/report', {
+          body: {
+            state: 'Kano',
+            dateFrom: '2026-01-01',
+            dateTo: '2026-05-01',
+            data: { totalCases: 12, mortalityCount: 1 },
+          },
+        }),
       ],
     },
     {

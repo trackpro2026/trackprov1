@@ -4,6 +4,8 @@ NestJS + MongoDB backend for **Track-pro**, a livestock and animal tracking plat
 
 Design: [Track-pro Figma](https://www.figma.com/design/BMiVgXIeVE3c23kCwL4eav/Track-pro?node-id=0-1&p=f)
 
+**Figma ↔ API map:** see [`docs/FIGMA_BACKEND_MAP.md`](docs/FIGMA_BACKEND_MAP.md) (full module list, aliases, gaps).
+
 ## Project structure
 
 ```
@@ -15,11 +17,13 @@ src/
 │   ├── auth/              # Signup, login (farmer, doctor, admin)
 │   ├── user/              # Profile, settings, public doctor directory
 │   ├── doctor/            # Veterinarian profile completion
-│   ├── animal/            # Herd / animal registry
-│   ├── health-record/     # Vet visits, vaccinations, treatments
+│   ├── animal/            # Herd / animal registry (+ `/livestock` Figma alias)
+│   ├── health-record/     # Vet visits (+ `/veterinary-visits` Figma alias)
+│   ├── slaughterhouse/    # Abattoirs & slaughter scheduling
 │   ├── tracking/          # Weight, location, feeding events
 │   ├── dashboard/         # Farmer & doctor dashboards
 │   ├── admin/             # Farmer/doctor management, analytics
+│   ├── ai/                # Gemini livestock AI (6 endpoints)
 │   └── upload/            # Cloudinary file uploads
 ├── app.module.ts
 ├── health.controller.ts
@@ -91,7 +95,17 @@ Signup/login tests save `{{accessToken}}`. Use **Sign Up Doctor** + **Login Doct
 ### Doctor portal (protected, doctor role)
 - `PATCH /doctor/profile` — Complete veterinarian profile
 
-### Animals `/api/v1/animals` — full CRUD
+### Livestock `/api/v1/livestock` — Figma alias (same as `/animals`)
+
+| Method | Description |
+|--------|-------------|
+| POST | Create (farmer) |
+| GET | List herd |
+| GET `:id` | One animal |
+| PATCH `:id` | Update |
+| DELETE `:id` | Delete |
+
+### Animals `/api/v1/animals` — full CRUD (canonical)
 | Method | Description |
 |--------|-------------|
 | POST | Create (farmer) |
@@ -110,7 +124,16 @@ Signup/login tests save `{{accessToken}}`. Use **Sign Up Doctor** + **Login Doct
 | PATCH `:id` | **Update** event |
 | DELETE `:id` | Delete event |
 
-### Health records `/api/v1/health-records` — full CRUD
+### Veterinary visits `/api/v1/veterinary-visits` — Figma alias (same as health-records)
+
+| Method | Description |
+|--------|-------------|
+| POST | Log visit (doctor) |
+| GET | Doctor’s visits |
+| GET `animal/:animalId` | Visit history per animal |
+| GET/PATCH/DELETE `:id` | One visit |
+
+### Health records `/api/v1/health-records` — full CRUD (canonical)
 | Method | Description |
 |--------|-------------|
 | POST | Create (doctor) |
@@ -119,6 +142,26 @@ Signup/login tests save `{{accessToken}}`. Use **Sign Up Doctor** + **Login Doct
 | GET `:id` | One record |
 | PATCH `:id` | **Update** (doctor who created, or admin) |
 | DELETE `:id` | Delete (doctor who created, or admin) |
+
+### Slaughterhouse
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/slaughterhouses` | Approved facilities (public) |
+| GET | `/slaughterhouses/all` | All facilities (admin) |
+| POST | `/slaughterhouses` | Register facility (admin) |
+| POST | `/slaughter-records` | Schedule slaughter (farmer) |
+| GET | `/slaughter-records` | List records |
+| PATCH | `/slaughter-records/:id` | Inspection / update (doctor, admin, farmer cancel) |
+
+### AI `/api/v1/ai` (JWT, `GEMINI_API_KEY`)
+
+- `POST /ai/health-check` — photo triage  
+- `POST /ai/vet-assistant` — multilingual vet chat  
+- `POST /ai/guardian` — outbreak detection  
+- `POST /ai/health-score` — score 0–100  
+- `POST /ai/vaccination-schedule` — due dates  
+- `POST /ai/report` — surveillance Markdown report  
 
 ### Dashboard (protected)
 - `GET /dashboard/me` — Role-based summary

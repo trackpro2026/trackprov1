@@ -11,6 +11,11 @@ import { Model, Types } from 'mongoose';
 import { User, UserDocument } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { CompleteDoctorProfileDto } from './dto/complete-doctor-profile.dto';
+import { CompleteSlaughterhouseProfileDto } from './dto/complete-slaughterhouse-profile.dto';
+import {
+  SlaughterhouseProfile,
+  SlaughterhouseOperatorStatus,
+} from './entities/slaughterhouse-profile.schema';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { UpdateSettingsDto } from './dto/update-settings.dto';
 import { EncryptionService } from '../../core/encryption/encryption.service';
@@ -37,13 +42,19 @@ export class UserService {
     const user = new this.userModel({
       name: createUserDto.name,
       email: createUserDto.email.toLowerCase(),
+      phone: createUserDto.phone,
       passwordHash,
       role,
       userState:
-        role === Role.Doctor ? UserAccountState.Pending : UserAccountState.Active,
+        role === Role.Doctor || role === Role.Slaughterhouse
+          ? UserAccountState.Pending
+          : UserAccountState.Active,
       isEmailVerified: role === Role.Admin,
       ...(role === Role.Doctor
         ? { doctorProfile: { status: DoctorStatus.PendingReview } }
+        : {}),
+      ...(role === Role.Slaughterhouse
+        ? { slaughterhouseProfile: { status: SlaughterhouseOperatorStatus.PendingReview } }
         : {}),
     });
     const saved = await user.save();
@@ -72,6 +83,35 @@ export class UserService {
       status: prev.status ?? DoctorStatus.PendingReview,
       isVerified: prev.isVerified ?? false,
     };
+    user.isEmailVerified = true;
+    await user.save();
+    return this.toUserResponse(user);
+  }
+
+  async completeSlaughterhouseProfile(
+    operatorId: string,
+    dto: CompleteSlaughterhouseProfileDto,
+  ) {
+    const user = await this.userModel.findById(operatorId).exec();
+    if (!user || user.role !== Role.Slaughterhouse) {
+      throw new ForbiddenException('Only slaughterhouse accounts can complete this profile');
+    }
+    const prev = user.slaughterhouseProfile ?? ({} as SlaughterhouseProfile);
+    user.slaughterhouseProfile = {
+      ...prev,
+      facilityName: dto.facilityName,
+      location: dto.location,
+      state: dto.state ?? prev.state,
+      licenseNumber: dto.licenseNumber ?? prev.licenseNumber,
+      contactPhone: dto.contactPhone ?? prev.contactPhone ?? user.phone,
+      documentUrls:
+        dto.documentUrls && dto.documentUrls.length > 0
+          ? dto.documentUrls
+          : prev.documentUrls ?? [],
+      profileImageUrl: dto.profileImageUrl ?? prev.profileImageUrl,
+      status: prev.status ?? SlaughterhouseOperatorStatus.PendingReview,
+    };
+    user.phone = dto.contactPhone ?? user.phone;
     user.isEmailVerified = true;
     await user.save();
     return this.toUserResponse(user);
@@ -403,6 +443,9 @@ export class UserService {
       userState: user.userState ?? UserAccountState.Active,
       isEmailVerified: user.isEmailVerified,
       phone: user.phone,
+      address: user.address,
+      latitude: user.latitude,
+      longitude: user.longitude,
       avatarUrl: user.avatarUrl,
       farmName: user.farmName,
       farmLocation: user.farmLocation,
@@ -417,7 +460,24 @@ export class UserService {
       base.adminFileUrls = user.adminFileUrls;
     }
     const doctorProfile = this.toDoctorProfileResponse(user.doctorProfile);
-    return doctorProfile ? { ...base, doctorProfile } : base;
+    const slaughterhouseProfile = user.slaughterhouseProfile
+      ? {
+          facilityName: user.slaughterhouseProfile.facilityName,
+          location: user.slaughterhouseProfile.location,
+          state: user.slaughterhouseProfile.state,
+          licenseNumber: user.slaughterhouseProfile.licenseNumber,
+          contactPhone: user.slaughterhouseProfile.contactPhone,
+          documentUrls: user.slaughterhouseProfile.documentUrls,
+          profileImageUrl: user.slaughterhouseProfile.profileImageUrl,
+          status: user.slaughterhouseProfile.status,
+          facilityId: user.slaughterhouseProfile.facilityId,
+        }
+      : undefined;
+    return {
+      ...base,
+      ...(doctorProfile ? { doctorProfile } : {}),
+      ...(slaughterhouseProfile ? { slaughterhouseProfile } : {}),
+    };
   }
 }
 

@@ -2,6 +2,10 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 import { Role } from '../../../common/decorators/roles.decorator';
 import { DoctorProfile, DoctorProfileSchema } from './doctor-profile.schema';
+import {
+  SlaughterhouseProfile,
+  SlaughterhouseProfileSchema,
+} from './slaughterhouse-profile.schema';
 import { UserAccountState } from './user-account-state.enum';
 
 export type UserDocument = User & Document;
@@ -45,6 +49,16 @@ export class User {
 
   @Prop()
   phone?: string;
+
+  /** Street address (vets / operators — Figma profile screens) */
+  @Prop()
+  address?: string;
+
+  @Prop()
+  latitude?: number;
+
+  @Prop()
+  longitude?: number;
 
   @Prop()
   avatarUrl?: string;
@@ -91,6 +105,9 @@ export class User {
 
   @Prop({ type: DoctorProfileSchema })
   doctorProfile?: DoctorProfile;
+
+  @Prop({ type: SlaughterhouseProfileSchema })
+  slaughterhouseProfile?: SlaughterhouseProfile;
 
   /** Primary veterinarian for this farmer's herd (optional) */
   @Prop()

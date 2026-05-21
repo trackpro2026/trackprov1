@@ -12,6 +12,12 @@ export enum HealthRecordType {
   Other = 'other',
 }
 
+/** Figma visit list status badges */
+export enum VisitStatus {
+  Pending = 'pending',
+  Completed = 'completed',
+}
+
 @Schema({ timestamps: true })
 export class HealthRecord {
   @Prop({ type: Types.ObjectId, ref: 'Animal', required: true, index: true })
@@ -28,6 +34,12 @@ export class HealthRecord {
 
   @Prop({ required: true, enum: Object.values(HealthRecordType) })
   type: HealthRecordType;
+
+  @Prop()
+  reason?: string;
+
+  @Prop({ default: VisitStatus.Pending, enum: Object.values(VisitStatus) })
+  status: VisitStatus;
 
   @Prop()
   diagnosis?: string;

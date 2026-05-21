@@ -10,6 +10,7 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AdminService } from './admin.service';
+import { HealthRecordService } from '../health-record/health-record.service';
 import { SWAGGER_BEARER } from '../../common/swagger/swagger.setup';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
@@ -26,7 +27,40 @@ import { UpdateDoctorStatusDto } from './dto/update-doctor-status.dto';
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(Role.Admin)
 export class AdminController {
-  constructor(private readonly adminService: AdminService) {}
+  constructor(
+    private readonly adminService: AdminService,
+    private readonly healthRecordService: HealthRecordService,
+  ) {}
+
+  @Get('overview')
+  @ApiOperation({ summary: 'Admin overview (Figma Overview screen)' })
+  overview() {
+    return this.adminService.getOverview();
+  }
+
+  @Get('livestock')
+  @ApiOperation({ summary: 'Admin livestock list (Figma Livestocks)' })
+  listLivestock(@Query() query: PaginationDto) {
+    return this.adminService.listLivestock(query);
+  }
+
+  @Get('veterinary-visits')
+  @ApiOperation({ summary: 'Admin veterinary visits list' })
+  listVisits(@Query() query: PaginationDto) {
+    return this.healthRecordService.findAllEnriched(query);
+  }
+
+  @Get('slaughterhouses')
+  @ApiOperation({ summary: 'Admin slaughterhouses list' })
+  listSlaughterhouses(@Query() query: PaginationDto) {
+    return this.adminService.listSlaughterhouseFacilities(query);
+  }
+
+  @Get('slaughterhouse-operators')
+  @ApiOperation({ summary: 'Admin slaughterhouse operator accounts' })
+  listOperators(@Query() query: PaginationDto) {
+    return this.adminService.listSlaughterhouseOperators(query);
+  }
 
   @Get('farmers')
   listFarmers(@Query() query: PaginationDto) {

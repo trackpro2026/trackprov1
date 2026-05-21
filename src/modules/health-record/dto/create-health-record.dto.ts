@@ -6,7 +6,7 @@ import {
   IsString,
   MaxLength,
 } from 'class-validator';
-import { HealthRecordType } from '../entities/health-record.entity';
+import { HealthRecordType, VisitStatus } from '../entities/health-record.entity';
 
 export class CreateHealthRecordDto {
   @ApiProperty({ description: 'MongoDB _id of the animal' })
@@ -20,6 +20,17 @@ export class CreateHealthRecordDto {
   @ApiProperty({ enum: HealthRecordType, example: HealthRecordType.Vaccination })
   @IsEnum(HealthRecordType)
   type: HealthRecordType;
+
+  @ApiPropertyOptional({ example: 'Routine Checkup' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
+  reason?: string;
+
+  @ApiPropertyOptional({ enum: VisitStatus })
+  @IsOptional()
+  @IsEnum(VisitStatus)
+  status?: VisitStatus;
 
   @ApiPropertyOptional()
   @IsOptional()

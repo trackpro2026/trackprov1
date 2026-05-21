@@ -78,6 +78,18 @@ export class AuthController {
   }
 
   @Public()
+  @Post('signup/slaughterhouse')
+  @ApiOperation({ summary: 'Slaughterhouse operator registration' })
+  async signUpSlaughterhouse(
+    @Body() createUserDto: CreateUserDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const result = await this.authService.signUpSlaughterhouse(createUserDto);
+    this.setAuthCookie(res, result.accessToken);
+    return result;
+  }
+
+  @Public()
   @Post('login')
   async login(
     @Body() loginDto: LoginDto,
@@ -100,6 +112,22 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     const result = await this.authService.loginDoctor(loginDto, {
+      ip: req.ip || req.socket?.remoteAddress,
+      userAgent: req.get('user-agent') || undefined,
+    });
+    this.setAuthCookie(res, result.accessToken);
+    return result;
+  }
+
+  @Public()
+  @Post('login/slaughterhouse')
+  @ApiOperation({ summary: 'Slaughterhouse operator login' })
+  async loginSlaughterhouse(
+    @Body() loginDto: LoginDto,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const result = await this.authService.loginSlaughterhouse(loginDto, {
       ip: req.ip || req.socket?.remoteAddress,
       userAgent: req.get('user-agent') || undefined,
     });

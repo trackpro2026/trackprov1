@@ -44,6 +44,14 @@
       "value": ""
     },
     {
+      "key": "slaughterhouseId",
+      "value": ""
+    },
+    {
+      "key": "slaughterRecordId",
+      "value": ""
+    },
+    {
       "key": "uploadUrl",
       "value": ""
     }
@@ -274,6 +282,44 @@
           ]
         },
         {
+          "name": "Sign Up Slaughterhouse",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/signup/slaughterhouse",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "signup",
+                "slaughterhouse"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Abattoir Operator\",\n  \"email\": \"slaughter@example.com\",\n  \"phone\": \"+2348012345678\",\n  \"password\": \"password123\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": "const j = pm.response.json();\nif (j.accessToken) {\n  pm.environment.set('accessToken', j.accessToken);\n  pm.collectionVariables.set('accessToken', j.accessToken);\n}\nif (j.user && j.user.id) {\n  if (j.user.role === 'farmer') {\n    pm.environment.set('farmerId', j.user.id);\n    pm.collectionVariables.set('farmerId', j.user.id);\n  }\n  if (j.user.role === 'doctor') {\n    pm.environment.set('doctorId', j.user.id);\n    pm.collectionVariables.set('doctorId', j.user.id);\n  }\n}"
+              }
+            }
+          ]
+        },
+        {
           "name": "Login Farmer",
           "request": {
             "method": "POST",
@@ -338,6 +384,44 @@
             "body": {
               "mode": "raw",
               "raw": "{\n  \"email\": \"doctor@example.com\",\n  \"password\": \"password123\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": "const j = pm.response.json();\nif (j.accessToken) {\n  pm.environment.set('accessToken', j.accessToken);\n  pm.collectionVariables.set('accessToken', j.accessToken);\n}\nif (j.user && j.user.id) {\n  if (j.user.role === 'farmer') {\n    pm.environment.set('farmerId', j.user.id);\n    pm.collectionVariables.set('farmerId', j.user.id);\n  }\n  if (j.user.role === 'doctor') {\n    pm.environment.set('doctorId', j.user.id);\n    pm.collectionVariables.set('doctorId', j.user.id);\n  }\n}"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login Slaughterhouse",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/login/slaughterhouse",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login",
+                "slaughterhouse"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"slaughter@example.com\",\n  \"password\": \"password123\"\n}"
             }
           },
           "event": [
@@ -663,6 +747,109 @@
             "body": {
               "mode": "raw",
               "raw": "{\n  \"clinicName\": \"Valley Veterinary Clinic\",\n  \"licenseNumber\": \"VET-2024-001\",\n  \"location\": \"Austin, TX\",\n  \"specialties\": [\n    \"cattle\",\n    \"goat\"\n  ],\n  \"speciesTreated\": [\n    \"cattle\",\n    \"sheep\",\n    \"goat\"\n  ],\n  \"bio\": \"Large animal practice serving central Texas.\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Livestock",
+      "item": [
+        {
+          "name": "Create Livestock",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/livestock",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "livestock"
+              ]
+            },
+            "description": "Figma alias of POST /animals.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tagId\": \"EAR-002\",\n  \"name\": \"Duke\",\n  \"species\": \"goat\",\n  \"breed\": \"Boer\",\n  \"sex\": \"male\",\n  \"healthStatus\": \"healthy\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": "const j = pm.response.json();\nconst id = j._id || j.id;\nif (id) {\n  pm.environment.set('animalId', id);\n  pm.collectionVariables.set('animalId', id);\n}"
+              }
+            }
+          ]
+        },
+        {
+          "name": "List Livestock",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/livestock?page=1&limit=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "livestock"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Livestock",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/livestock/{{animalId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "livestock",
+                "{{animalId}}"
+              ]
             }
           }
         }
@@ -1022,6 +1209,119 @@
       ]
     },
     {
+      "name": "Veterinary Visits",
+      "item": [
+        {
+          "name": "Log Visit",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/veterinary-visits",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "veterinary-visits"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"animalId\": \"{{animalId}}\",\n  \"visitDate\": \"2026-05-17T12:00:00.000Z\",\n  \"type\": \"checkup\",\n  \"diagnosis\": \"Routine check\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": "const j = pm.response.json();\nconst id = j._id || j.id;\nif (id) {\n  pm.environment.set('healthRecordId', id);\n  pm.collectionVariables.set('healthRecordId', id);\n}"
+              }
+            }
+          ]
+        },
+        {
+          "name": "List Visits (Doctor)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/veterinary-visits?page=1&limit=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "veterinary-visits"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Visits for Animal",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/veterinary-visits/animal/{{animalId}}?page=1&limit=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "veterinary-visits",
+                "animal",
+                "{{animalId}}"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
       "name": "Health Records",
       "item": [
         {
@@ -1209,6 +1509,345 @@
                 "health-records",
                 "{{healthRecordId}}"
               ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Slaughterhouse",
+      "item": [
+        {
+          "name": "List Approved Facilities",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/slaughterhouses",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "slaughterhouses"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List All Facilities (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/slaughterhouses/all",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "slaughterhouses",
+                "all"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Facility (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/slaughterhouses",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "slaughterhouses"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Kano Central Abattoir\",\n  \"location\": \"Kano, Nigeria\",\n  \"state\": \"Kano\",\n  \"licenseNumber\": \"ABT-2024-001\",\n  \"contactPhone\": \"+2348000000000\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Schedule Slaughter",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/slaughter-records",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "slaughter-records"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"animalId\": \"{{animalId}}\",\n  \"slaughterhouseId\": \"{{slaughterhouseId}}\",\n  \"scheduledDate\": \"2026-06-01T08:00:00.000Z\",\n  \"liveWeightKg\": 450\n}"
+            }
+          }
+        },
+        {
+          "name": "List Slaughter Records",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/slaughter-records?page=1&limit=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "slaughter-records"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "AI",
+      "item": [
+        {
+          "name": "Health Check (Photo)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/ai/health-check",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "ai",
+                "health-check"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"image\": \"base64-image-here\",\n  \"animalType\": \"cattle\",\n  \"animalId\": \"{{animalId}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Vet Assistant Chat",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/ai/vet-assistant",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "ai",
+                "vet-assistant"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"My goat has watery eyes\",\n  \"language\": \"en\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Guardian Outbreak",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/ai/guardian",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "ai",
+                "guardian"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"recentCases\": [\n    {\n      \"species\": \"goat\",\n      \"diagnosis\": \"PPR\",\n      \"location\": \"Kano\"\n    }\n  ],\n  \"region\": \"Kano\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Health Score",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/ai/health-score",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "ai",
+                "health-score"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"animalId\": \"{{animalId}}\",\n  \"species\": \"cattle\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Vaccination Schedule",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/ai/vaccination-schedule",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "ai",
+                "vaccination-schedule"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"animalId\": \"{{animalId}}\",\n  \"species\": \"cattle\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Surveillance Report",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/ai/report",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "ai",
+                "report"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"state\": \"Kano\",\n  \"dateFrom\": \"2026-01-01\",\n  \"dateTo\": \"2026-05-01\",\n  \"data\": {\n    \"totalCases\": 12,\n    \"mortalityCount\": 1\n  }\n}"
             }
           }
         }

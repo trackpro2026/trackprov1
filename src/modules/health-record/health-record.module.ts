@@ -4,6 +4,7 @@ import { HealthRecord, HealthRecordSchema } from './entities/health-record.entit
 import { Animal, AnimalSchema } from '../animal/entities/animal.entity';
 import { HealthRecordService } from './health-record.service';
 import { HealthRecordController } from './health-record.controller';
+import { VeterinaryVisitsController } from './veterinary-visits.controller';
 
 @Module({
   imports: [
@@ -12,7 +13,7 @@ import { HealthRecordController } from './health-record.controller';
       { name: Animal.name, schema: AnimalSchema },
     ]),
   ],
-  controllers: [HealthRecordController],
+  controllers: [HealthRecordController, VeterinaryVisitsController],
   providers: [HealthRecordService],
   exports: [HealthRecordService],
 })
