@@ -33,9 +33,19 @@ export class AdminController {
   ) {}
 
   @Get('overview')
-  @ApiOperation({ summary: 'Admin overview (Figma Overview screen)' })
+  @ApiOperation({
+    summary: 'Admin dashboard overview',
+    description:
+      'Figma Overview: summary cards, healthy/sick livestock, visit stats, year chart, recent visits.',
+  })
   overview() {
     return this.adminService.getOverview();
+  }
+
+  @Get('livestock/stats')
+  @ApiOperation({ summary: 'Livestock summary cards (total / healthy / sick)' })
+  livestockStats() {
+    return this.adminService.getLivestockStats();
   }
 
   @Get('livestock')
@@ -44,16 +54,40 @@ export class AdminController {
     return this.adminService.listLivestock(query);
   }
 
+  @Get('livestock/:id')
+  @ApiOperation({ summary: 'Livestock detail with owner and visit history' })
+  getLivestock(@Param('id') id: string) {
+    return this.adminService.getLivestockDetail(id);
+  }
+
+  @Get('veterinary-visits/stats')
+  @ApiOperation({ summary: 'Veterinary visit summary (total / completed / pending)' })
+  visitStats() {
+    return this.adminService.getVisitStats();
+  }
+
   @Get('veterinary-visits')
   @ApiOperation({ summary: 'Admin veterinary visits list' })
   listVisits(@Query() query: PaginationDto) {
     return this.healthRecordService.findAllEnriched(query);
   }
 
+  @Get('veterinary-visits/:id')
+  @ApiOperation({ summary: 'Veterinary visit detail (Figma drill-down)' })
+  getVisit(@Param('id') id: string) {
+    return this.healthRecordService.findOneDetailed(id, 'admin', Role.Admin);
+  }
+
   @Get('slaughterhouses')
-  @ApiOperation({ summary: 'Admin slaughterhouses list' })
+  @ApiOperation({ summary: 'Admin slaughterhouses list with active/inactive summary' })
   listSlaughterhouses(@Query() query: PaginationDto) {
     return this.adminService.listSlaughterhouseFacilities(query);
+  }
+
+  @Get('slaughterhouses/:id')
+  @ApiOperation({ summary: 'Slaughterhouse detail with recent slaughtered livestock' })
+  getSlaughterhouse(@Param('id') id: string) {
+    return this.adminService.getSlaughterhouseDetail(id);
   }
 
   @Get('slaughterhouse-operators')
@@ -63,16 +97,31 @@ export class AdminController {
   }
 
   @Get('farmers')
+  @ApiOperation({ summary: 'Farmers list with livestock count' })
   listFarmers(@Query() query: PaginationDto) {
     return this.adminService.listFarmers(query);
   }
 
+  @Get('farmers/:id')
+  @ApiOperation({ summary: 'Farmer detail with livestock table' })
+  getFarmer(@Param('id') id: string) {
+    return this.adminService.getFarmerDetail(id);
+  }
+
   @Get('doctors')
+  @ApiOperation({ summary: 'Veterinarians list with status and last visit' })
   listDoctors(@Query() query: PaginationDto) {
     return this.adminService.listDoctors(query);
   }
 
+  @Get('doctors/:id')
+  @ApiOperation({ summary: 'Veterinarian detail with visit history' })
+  getDoctor(@Param('id') id: string) {
+    return this.adminService.getDoctorDetail(id);
+  }
+
   @Get('analytics')
+  @ApiOperation({ summary: 'Platform counts' })
   analytics() {
     return this.adminService.getAnalytics();
   }
@@ -89,6 +138,7 @@ export class AdminController {
   }
 
   @Patch('doctors/:id/status')
+  @ApiOperation({ summary: 'Approve / decline veterinarian' })
   updateDoctorStatus(@Param('id') id: string, @Body() dto: UpdateDoctorStatusDto) {
     return this.adminService.updateDoctorStatus(id, dto.status);
   }

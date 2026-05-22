@@ -77,20 +77,15 @@ export class DashboardService {
   }
 
   async getDoctorDashboard(doctorId: string) {
-    const did = new Types.ObjectId(doctorId);
-    const [assignedAnimals, visitStats, recentVisits] = await Promise.all([
-      this.animalModel
-        .find({ assignedDoctorId: did })
-        .sort({ updatedAt: -1 })
-        .limit(10)
-        .lean(),
-      this.healthRecordService.getDoctorVisitStats(doctorId),
-      this.healthRecordService.findForDoctor(doctorId, { page: 1, limit: 10 }),
-    ]);
+    const overview = await this.healthRecordService.getDoctorOverview(doctorId);
+    const assignedAnimals = await this.animalModel
+      .find({ assignedDoctorId: new Types.ObjectId(doctorId) })
+      .sort({ updatedAt: -1 })
+      .limit(10)
+      .lean();
     return {
-      ...visitStats,
+      ...overview,
       assignedAnimals,
-      recentVeterinaryVisits: recentVisits.items,
     };
   }
 

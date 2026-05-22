@@ -45,15 +45,19 @@ All signups accept optional `phone` (Figma forms).
 
 | Figma | API |
 |-------|-----|
-| Create account / Login | `/auth/signup/doctor`, `/auth/login/doctor` |
-| Complete profile | `PATCH /doctor/profile` |
-| Overview cards | `GET /dashboard/doctor` + `GET /veterinary-visits/stats` |
-| Veterinary visits table | `GET /veterinary-visits` (farmerName, livestockType, status) |
-| Visit detail | `GET /veterinary-visits/:id` |
-| Log visit | `POST /veterinary-visits` — body: `reason`, `status` (`pending` \| `completed`) |
-| Map | `GET /map/markers` |
+| Create account / Login / Forgot password | `/auth/signup/doctor`, `/auth/login/doctor`, `/auth/forgot-password` … |
+| Profile / password / notification toggles | `GET/PATCH /users/me`, `PATCH /users/me/password`, `PATCH /users/me/settings` |
+| Complete clinic profile | `PATCH /doctor/profile` |
+| Overview + visits table | `GET /dashboard/doctor` or `GET /doctor/overview` or `GET /veterinary-visits/overview` |
+| Overview cards (monthly filter) | `?month=5&year=2026` on overview — `totalVisits`, `slaughterhousesVisited`, `healthyAnimals`, `sickAnimals` |
+| Visit charts | `GET /veterinary-visits/analytics` or `GET /doctor/analytics` |
+| Veterinary visits list | `GET /veterinary-visits` — `ownerName`, `livestockId` (tag), `summary`, `visitDateTime`, `?search=` |
+| Visit detail | `GET /veterinary-visits/:id` — `livestock`, `owner`, `veterinarian` cards |
+| Log visit | `POST /veterinary-visits` — `reason`, `status` (`pending` \| `completed`) |
+| Map | `GET /map/markers` — assigned livestock + farmers |
+| Notifications | `GET /notifications` — auto: **New farmer**, **New animal**, visit updates |
 
-**Overview stats:** `totalLivestock`, `totalFarmers`, `totalVisits`, `pendingVisits`.
+**Overview stats:** `totalVisits`, `slaughterhousesVisited`, `healthyAnimals`, `sickAnimals`, `pendingVisits`, `recentVeterinaryVisits[]`.
 
 ---
 
@@ -61,12 +65,16 @@ All signups accept optional `phone` (Figma forms).
 
 | Figma | API |
 |-------|-----|
-| Create account / Login | `/auth/signup/slaughterhouse`, `/auth/login/slaughterhouse` |
+| Create account / Login / Forgot password | `/auth/signup/slaughterhouse` (+ optional `address`, `phone`), `/auth/login/slaughterhouse`, `/auth/forgot-password` … |
+| Profile / password | `GET/PATCH /users/me`, `PATCH /users/me/password` |
+| Overview + process alerts + animals table | `GET /dashboard/slaughterhouse` or `GET /slaughterhouse/overview` — `processAlerts`, `animalsRegisteredTable`, counts |
+| Livestock management table | `GET /slaughterhouse/livestock` (?species=) |
+| Facility slaughter records | `GET /slaughterhouse/records` or `GET /slaughter-records` (operator sees own facility) |
+| Update inspection / processing | `PATCH /slaughter-records/:id` (operator role) |
 | Profile + documents | `PATCH /slaughterhouse/profile` (creates facility `SH-001`, …) |
-| Overview | `GET /dashboard/slaughterhouse` — `totalCattle`, `totalGoat`, `recentSlaughtered[]` |
-| Slaughterhouses list | `GET /slaughterhouses` (public approved) |
-| Schedule / records | `POST/GET /slaughter-records` |
-| Map | `GET /map/markers` |
+| Slaughterhouses list (pick facility) | `GET /slaughterhouses` (public approved) |
+| Map | `GET /map/markers` — linked farmers + booked livestock + own facility |
+| Notifications | `GET /notifications` (auto: new booking, new farmer, inspection, etc.) |
 
 ---
 
@@ -74,15 +82,17 @@ All signups accept optional `phone` (Figma forms).
 
 | Figma | API |
 |-------|-----|
-| Overview | `GET /admin/overview` |
-| Farmers | `GET /admin/farmers` |
-| Livestocks | `GET /admin/livestock` |
-| Slaughterhouses | `GET /admin/slaughterhouses` |
+| Overview | `GET /admin/overview` — summary cards, healthy/sick livestock, visit stats, `visitsByMonth`, recent visits |
+| Farmers list / detail | `GET /admin/farmers` (+ `livestockCount`), `GET /admin/farmers/:id` |
+| Livestocks list / detail | `GET /admin/livestock`, `GET /admin/livestock/stats`, `GET /admin/livestock/:id` |
+| Slaughterhouses | `GET /admin/slaughterhouses` (+ active/inactive summary), `GET /admin/slaughterhouses/:id` |
 | Slaughterhouse operators | `GET /admin/slaughterhouse-operators` |
-| Veterinary visits | `GET /admin/veterinary-visits` |
-| Veterinarians | `GET /admin/doctors`, `PATCH /admin/doctors/:id/status` |
-| Analytics | `GET /admin/analytics` |
+| Veterinary visits | `GET /admin/veterinary-visits`, `GET /admin/veterinary-visits/stats`, `GET /admin/veterinary-visits/:id` |
+| Veterinarians | `GET /admin/doctors`, `GET /admin/doctors/:id`, `PATCH /admin/doctors/:id/status` |
+| Profile / password / settings | `GET/PATCH /users/me`, `PATCH /users/me/password`, `PATCH /users/me/settings` |
+| Notifications | `GET /notifications` — auto: new farmer, vet, slaughterhouse operator signups |
 | Map | `GET /map/markers` |
+| Analytics | `GET /admin/analytics` |
 
 ---
 
@@ -113,6 +123,7 @@ Requires `GEMINI_API_KEY`.
 
 | Event | Recipient |
 |-------|-----------|
+| New farmer / vet / slaughterhouse signup | All **admins** |
 | Vet logs visit | Farmer |
 | Visit marked completed | Farmer |
 | Visit deleted | Farmer |

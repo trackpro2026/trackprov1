@@ -49,6 +49,7 @@ export class UserService {
       name: createUserDto.name,
       email: createUserDto.email.toLowerCase(),
       phone: createUserDto.phone,
+      address: createUserDto.address,
       passwordHash,
       role,
       userState:
@@ -64,6 +65,34 @@ export class UserService {
         : {}),
     });
     const saved = await user.save();
+    const userId = String(saved._id);
+
+    if (role === Role.Farmer) {
+      void this.notificationService.notifyAdmins({
+        title: 'New farmer',
+        message: `${saved.name} has been added to the system.`,
+        type: NotificationType.General,
+        relatedId: userId,
+        relatedType: NotificationRelatedType.User,
+      });
+    } else if (role === Role.Doctor) {
+      void this.notificationService.notifyAdmins({
+        title: 'New veterinarian',
+        message: `${saved.name} has been added to the system.`,
+        type: NotificationType.Account,
+        relatedId: userId,
+        relatedType: NotificationRelatedType.User,
+      });
+    } else if (role === Role.Slaughterhouse) {
+      void this.notificationService.notifyAdmins({
+        title: 'New slaughterhouse operator',
+        message: `${saved.name} has registered as a slaughterhouse operator.`,
+        type: NotificationType.General,
+        relatedId: userId,
+        relatedType: NotificationRelatedType.User,
+      });
+    }
+
     return this.toUserResponse(saved);
   }
 

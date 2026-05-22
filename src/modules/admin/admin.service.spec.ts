@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getModelToken } from '@nestjs/mongoose';
 import { AdminService } from './admin.service';
 import { UserService } from '../user/user.service';
+import { HealthRecordService } from '../health-record/health-record.service';
 import { User } from '../user/entities/user.entity';
 import { Animal } from '../animal/entities/animal.entity';
 import { HealthRecord } from '../health-record/entities/health-record.entity';
@@ -29,12 +30,26 @@ describe('AdminService', () => {
           },
         },
         {
+          provide: HealthRecordService,
+          useValue: {
+            findAllEnriched: jest.fn().mockResolvedValue({ items: [], meta: { total: 0 } }),
+            findForDoctor: jest.fn().mockResolvedValue({ items: [], meta: {} }),
+          },
+        },
+        {
           provide: getModelToken(User.name),
-          useValue: { countDocuments: jest.fn().mockResolvedValue(5) },
+          useValue: {
+            countDocuments: jest.fn().mockResolvedValue(5),
+            aggregate: jest.fn().mockResolvedValue([]),
+          },
         },
         {
           provide: getModelToken(Animal.name),
-          useValue: { countDocuments: jest.fn().mockResolvedValue(10) },
+          useValue: {
+            countDocuments: jest.fn().mockResolvedValue(10),
+            aggregate: jest.fn().mockResolvedValue([]),
+            findById: jest.fn(),
+          },
         },
         {
           provide: getModelToken(HealthRecord.name),
@@ -55,9 +70,10 @@ describe('AdminService', () => {
     userService = module.get<UserService>(UserService);
   });
 
-  it('listFarmers filters by role', async () => {
-    await service.listFarmers({ page: 1, limit: 10 });
-    expect(userService.findAll).toHaveBeenCalledWith({ page: 1, limit: 10 }, Role.Farmer);
+  it('listFarmers returns paginated farmers', async () => {
+    const result = await service.listFarmers({ page: 1, limit: 10 });
+    expect(result.items).toEqual([]);
+    expect(result.meta).toBeDefined();
   });
 
   it('getAnalytics aggregates counts', async () => {

@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Animal, AnimalSchema } from './entities/animal.entity';
+import { User, UserSchema } from '../user/entities/user.entity';
 import { AnimalService } from './animal.service';
 import { LivestockController } from './livestock.controller';
 import { NotificationModule } from '../notification/notification.module';
@@ -8,7 +9,10 @@ import { NotificationModule } from '../notification/notification.module';
 @Module({
   imports: [
     NotificationModule,
-    MongooseModule.forFeature([{ name: Animal.name, schema: AnimalSchema }]),
+    MongooseModule.forFeature([
+      { name: Animal.name, schema: AnimalSchema },
+      { name: User.name, schema: UserSchema },
+    ]),
   ],
   controllers: [LivestockController],
   providers: [AnimalService],

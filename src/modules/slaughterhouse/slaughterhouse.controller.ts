@@ -104,7 +104,7 @@ export class SlaughterRecordsController {
   @ApiOperation({
     summary: 'List slaughter records',
     description:
-      'Farmers: own records. Doctors & admins: all records (inspection / oversight).',
+      'Farmers: own records. Slaughterhouse: facility bookings. Doctors & admins: all records.',
   })
   @ApiQuery({ name: 'page', required: false, example: 1 })
   @ApiQuery({ name: 'limit', required: false, example: 10 })
@@ -128,11 +128,11 @@ export class SlaughterRecordsController {
 
   @Patch(':id')
   @UseGuards(RolesGuard)
-  @Roles(Role.Doctor, Role.Admin, Role.Farmer)
+  @Roles(Role.Slaughterhouse, Role.Doctor, Role.Admin, Role.Farmer)
   @ApiOperation({
     summary: 'Update slaughter record',
     description:
-      'Doctors: inspection fields. Farmers: cancel scheduled only. Admins: full update.',
+      'Slaughterhouse: inspection & processing at own facility. Doctors: inspection. Farmers: cancel only. Admins: full.',
   })
   update(
     @Param('id') id: string,

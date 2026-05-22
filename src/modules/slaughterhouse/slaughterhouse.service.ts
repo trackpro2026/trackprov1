@@ -94,29 +94,185 @@ export class SlaughterhouseService {
     return facility.save();
   }
 
-  async getOperatorOverview(operatorId: string) {
-    const facility = await this.facilityModel.findOne({ ownerId: operatorId }).lean().exec();
+  async getFacilityByOperator(operatorId: string) {
+    return this.facilityModel.findOne({ ownerId: operatorId }).exec();
+  }
 
-    const [recentSlaughtered, cattleCount, goatCount] = await Promise.all([
+  async getOperatorOverview(operatorId: string) {
+    const facility = await this.getFacilityByOperator(operatorId);
+    if (!facility) {
+      return {
+        facility: null,
+        totalCattle: 0,
+        totalGoat: 0,
+        pendingInspections: 0,
+        scheduledToday: 0,
+        processAlerts: [],
+        recentSlaughtered: [],
+        animalsRegisteredTable: [],
+      };
+    }
+
+    const facilityId = facility._id;
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const todayEnd = new Date();
+    todayEnd.setHours(23, 59, 59, 999);
+
+    const baseFilter = { slaughterhouseId: facilityId };
+
+    const [
+      recentSlaughtered,
+      cattleCount,
+      goatCount,
+      pendingInspections,
+      scheduledToday,
+      animalsRegisteredTable,
+    ] = await Promise.all([
       this.recordModel
-        .find(facility ? { slaughterhouseId: facility._id } : {})
+        .find(baseFilter)
         .sort({ scheduledDate: -1 })
         .limit(10)
         .lean(),
-      this.recordModel.countDocuments(
-        facility ? { slaughterhouseId: facility._id, species: 'cattle' } : {},
-      ),
-      this.recordModel.countDocuments(
-        facility ? { slaughterhouseId: facility._id, species: 'goat' } : {},
-      ),
+      this.recordModel.countDocuments({ ...baseFilter, species: 'cattle' }),
+      this.recordModel.countDocuments({ ...baseFilter, species: 'goat' }),
+      this.recordModel.countDocuments({
+        ...baseFilter,
+        inspectionStatus: SlaughterInspectionStatus.Pending,
+        status: { $in: [SlaughterRecordStatus.Scheduled, SlaughterRecordStatus.InProgress] },
+      }),
+      this.recordModel.countDocuments({
+        ...baseFilter,
+        scheduledDate: { $gte: todayStart, $lte: todayEnd },
+        status: SlaughterRecordStatus.Scheduled,
+      }),
+      this.buildAnimalsRegisteredTable(facilityId),
     ]);
+
+    const processAlerts: { type: string; count: number; message: string }[] = [];
+    if (pendingInspections > 0) {
+      processAlerts.push({
+        type: 'inspection_pending',
+        count: pendingInspections,
+        message: `${pendingInspections} animal(s) awaiting ante-mortem inspection`,
+      });
+    }
+    if (scheduledToday > 0) {
+      processAlerts.push({
+        type: 'scheduled_today',
+        count: scheduledToday,
+        message: `${scheduledToday} slaughter(s) scheduled for today`,
+      });
+    }
 
     return {
       facility,
       totalCattle: cattleCount,
       totalGoat: goatCount,
+      pendingInspections,
+      scheduledToday,
+      processAlerts,
       recentSlaughtered,
+      animalsRegisteredTable,
     };
+  }
+
+  async listOperatorLivestock(
+    operatorId: string,
+    pagination: PaginationDto,
+    species?: string,
+  ) {
+    const facility = await this.getFacilityByOperator(operatorId);
+    if (!facility) {
+      return { items: [], meta: { total: 0, page: 1, limit: 10, totalPages: 0 } };
+    }
+
+    const table = await this.buildAnimalsRegisteredTable(facility._id, species);
+    const { page = 1, limit = 10 } = pagination;
+    const skip = (page - 1) * limit;
+    const items = table.slice(skip, skip + limit);
+    const total = table.length;
+    return {
+      items,
+      meta: { total, page, limit, totalPages: Math.ceil(total / limit) || 1 },
+    };
+  }
+
+  private async buildAnimalsRegisteredTable(
+    facilityId: Types.ObjectId,
+    species?: string,
+  ) {
+    const match: Record<string, unknown> = {
+      slaughterhouseId: facilityId,
+      status: { $ne: SlaughterRecordStatus.Cancelled },
+    };
+    if (species) match.species = species;
+
+    const rows = await this.recordModel.aggregate([
+      { $match: match },
+      { $sort: { scheduledDate: -1 } },
+      {
+        $lookup: {
+          from: 'animals',
+          localField: 'animalId',
+          foreignField: '_id',
+          as: 'animalDoc',
+        },
+      },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'farmerId',
+          foreignField: '_id',
+          as: 'farmerDoc',
+        },
+      },
+      {
+        $lookup: {
+          from: 'healthrecords',
+          let: { aid: '$animalId' },
+          pipeline: [
+            { $match: { $expr: { $eq: ['$animalId', '$$aid'] } } },
+            { $sort: { visitDate: -1 } },
+            { $limit: 1 },
+          ],
+          as: 'lastVisit',
+        },
+      },
+      {
+        $addFields: {
+          livestockId: { $ifNull: [{ $arrayElemAt: ['$animalDoc.tagId', 0] }, '—'] },
+          type: { $ifNull: ['$species', { $arrayElemAt: ['$animalDoc.species', 0] }] },
+          breed: { $arrayElemAt: ['$animalDoc.breed', 0] },
+          registeredBy: { $arrayElemAt: ['$farmerDoc.name', 0] },
+          farmerId: { $toString: '$farmerId' },
+          healthStatus: {
+            $ifNull: [
+              { $arrayElemAt: ['$animalDoc.healthStatus', 0] },
+              '$healthStatusLabel',
+            ],
+          },
+          lastVeterinaryVisit: { $arrayElemAt: ['$lastVisit.visitDate', 0] },
+          lastVaccinationDate: { $arrayElemAt: ['$lastVisit.visitDate', 0] },
+          animalId: { $toString: '$animalId' },
+          recordId: { $toString: '$_id' },
+          scheduledDate: 1,
+          status: 1,
+          inspectionStatus: 1,
+        },
+      },
+      { $project: { animalDoc: 0, farmerDoc: 0, lastVisit: 0 } },
+    ]);
+
+    return rows;
+  }
+
+  private async assertOperatorFacilityRecord(record: SlaughterRecordDocument, operatorId: string) {
+    const facility = await this.getFacilityByOperator(operatorId);
+    if (!facility || String(record.slaughterhouseId) !== String(facility._id)) {
+      throw new ForbiddenException('This record does not belong to your facility');
+    }
+    return facility;
   }
 
   async listFacilities(all: boolean) {
@@ -183,16 +339,43 @@ export class SlaughterhouseService {
         relatedId: recordId,
         relatedType: NotificationRelatedType.SlaughterRecord,
       });
+
+      const priorFromFarmer = await this.recordModel.countDocuments({
+        slaughterhouseId: facility._id,
+        farmerId: animal.farmerId,
+        _id: { $ne: saved._id },
+      });
+      if (priorFromFarmer === 0) {
+        const farmer = await this.userModel.findById(animal.farmerId).lean().exec();
+        void this.notificationService.notify(facility.ownerId, {
+          title: 'New farmer',
+          message: farmer
+            ? `${farmer.name} has connected through a slaughter booking.`
+            : 'A new farmer has been connected through a slaughter booking.',
+          type: NotificationType.General,
+          relatedId: String(animal.farmerId),
+          relatedType: NotificationRelatedType.User,
+        });
+      }
     }
 
     return saved;
   }
 
   async findRecords(userId: string, role: Role, pagination: PaginationDto) {
-    const filter =
-      role === Role.Farmer
-        ? { farmerId: new Types.ObjectId(userId) }
-        : {};
+    let filter: Record<string, unknown> = {};
+
+    if (role === Role.Farmer) {
+      filter = { farmerId: new Types.ObjectId(userId) };
+    } else if (role === Role.Slaughterhouse) {
+      const facility = await this.getFacilityByOperator(userId);
+      if (!facility) {
+        const page = pagination.page ?? 1;
+        const limit = pagination.limit ?? 10;
+        return { items: [], meta: { total: 0, page, limit, totalPages: 0 } };
+      }
+      filter = { slaughterhouseId: facility._id };
+    }
 
     return this.paginateRecords(filter, pagination);
   }
@@ -203,6 +386,12 @@ export class SlaughterhouseService {
     if (role === Role.Admin) return record;
     if (role === Role.Farmer && String(record.farmerId) !== userId) {
       throw new ForbiddenException('You cannot access this slaughter record');
+    }
+    if (role === Role.Slaughterhouse) {
+      const facility = await this.getFacilityByOperator(userId);
+      if (!facility || String(record.slaughterhouseId) !== String(facility._id)) {
+        throw new ForbiddenException('You cannot access this slaughter record');
+      }
     }
     return record;
   }
@@ -222,6 +411,13 @@ export class SlaughterhouseService {
       }
       if (dto.status && dto.status !== SlaughterRecordStatus.Cancelled) {
         throw new ForbiddenException('Farmers can only cancel scheduled records');
+      }
+    }
+
+    if (role === Role.Slaughterhouse) {
+      await this.assertOperatorFacilityRecord(record, userId);
+      if (dto.status === SlaughterRecordStatus.Cancelled) {
+        throw new ForbiddenException('Operators cannot cancel records; contact the farmer or admin');
       }
     }
 

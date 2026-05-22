@@ -7,6 +7,7 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Animal, AnimalDocument } from './entities/animal.entity';
+import { User, UserDocument } from '../user/entities/user.entity';
 import { CreateAnimalDto } from './dto/create-animal.dto';
 import { UpdateAnimalDto } from './dto/update-animal.dto';
 import { PaginationDto } from '../../common/dto/pagination.dto';
@@ -21,6 +22,7 @@ import {
 export class AnimalService {
   constructor(
     @InjectModel(Animal.name) private animalModel: Model<AnimalDocument>,
+    @InjectModel(User.name) private userModel: Model<UserDocument>,
     private readonly notificationService: NotificationService,
   ) {}
 
@@ -41,9 +43,27 @@ export class AnimalService {
     });
     const saved = await animal.save();
     if (dto.assignedDoctorId) {
-      void this.notificationService.notify(dto.assignedDoctorId, {
-        title: 'Livestock assigned to you',
-        message: `${saved.name} (${saved.tagId}) was assigned to your care.`,
+      const doctorId = dto.assignedDoctorId;
+      const priorForFarmer = await this.animalModel.countDocuments({
+        farmerId: new Types.ObjectId(farmerId),
+        assignedDoctorId: new Types.ObjectId(doctorId),
+        _id: { $ne: saved._id },
+      });
+      if (priorForFarmer === 0) {
+        const farmer = await this.userModel.findById(farmerId).lean().exec();
+        void this.notificationService.notify(doctorId, {
+          title: 'New farmer',
+          message: farmer
+            ? `${farmer.name} has been added to your network.`
+            : 'A new farmer has been added to the system.',
+          type: NotificationType.General,
+          relatedId: farmerId,
+          relatedType: NotificationRelatedType.User,
+        });
+      }
+      void this.notificationService.notify(doctorId, {
+        title: 'New animal',
+        message: `A new animal was registered: ${saved.name} (${saved.tagId}).`,
         type: NotificationType.Livestock,
         relatedId: String(saved._id),
         relatedType: NotificationRelatedType.Animal,

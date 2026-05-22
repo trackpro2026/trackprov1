@@ -2,8 +2,10 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Notification, NotificationDocument } from './entities/notification.entity';
+import { User, UserDocument } from '../user/entities/user.entity';
 import { PaginationDto } from '../../common/dto/pagination.dto';
 import { NotificationType } from './notification.constants';
+import { Role } from '../../common/decorators/roles.decorator';
 
 export type CreateNotificationPayload = {
   title: string;
@@ -20,6 +22,7 @@ export class NotificationService {
   constructor(
     @InjectModel(Notification.name)
     private notificationModel: Model<NotificationDocument>,
+    @InjectModel(User.name) private userModel: Model<UserDocument>,
   ) {}
 
   async createForUser(userId: string, payload: CreateNotificationPayload) {
@@ -31,6 +34,12 @@ export class NotificationService {
       relatedId: payload.relatedId,
       relatedType: payload.relatedType,
     });
+  }
+
+  /** Notify every admin account (Figma: New farmer / vet / slaughterhouse alerts). */
+  async notifyAdmins(payload: CreateNotificationPayload): Promise<void> {
+    const admins = await this.userModel.find({ role: Role.Admin }).select('_id').lean().exec();
+    await Promise.all(admins.map((a) => this.notify(String(a._id), payload)));
   }
 
   /** Fire-and-forget: never fails the calling business operation. */

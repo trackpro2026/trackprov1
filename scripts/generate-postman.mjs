@@ -161,6 +161,7 @@ const collection = {
             name: 'Abattoir Operator',
             email: 'slaughter@example.com',
             phone: '+2348012345678',
+            address: '12 Abattoir Road, Kano',
             password: 'password123',
           },
           test: saveToken,
@@ -285,8 +286,11 @@ const collection = {
           },
           test: saveHealthRecordId,
         }),
+        req('Vet Overview (Figma)', 'GET', '/veterinary-visits/overview?month=5&year=2026'),
+        req('Vet Analytics (Charts)', 'GET', '/veterinary-visits/analytics?months=6'),
         req('Visit Stats (Doctor)', 'GET', '/veterinary-visits/stats'),
-        req('List Visits (Doctor)', 'GET', '/veterinary-visits?page=1&limit=10'),
+        req('List Visits (Doctor)', 'GET', '/veterinary-visits?page=1&limit=10&search=checkup'),
+        req('Doctor Overview Alias', 'GET', '/doctor/overview'),
         req('List Visits for Animal', 'GET', '/veterinary-visits/animal/{{animalId}}?page=1&limit=10'),
         req('Get Visit', 'GET', '/veterinary-visits/{{healthRecordId}}'),
         req('Update Visit', 'PATCH', '/veterinary-visits/{{healthRecordId}}', {
@@ -328,6 +332,19 @@ const collection = {
           },
         }),
         req('List Slaughter Records', 'GET', '/slaughter-records?page=1&limit=10'),
+        req('Slaughterhouse Overview', 'GET', '/slaughterhouse/overview', {
+          description: 'Figma overview: processAlerts, animalsRegisteredTable.',
+        }),
+        req('Slaughterhouse Livestock Table', 'GET', '/slaughterhouse/livestock?page=1&limit=10'),
+        req('Slaughterhouse Facility Records', 'GET', '/slaughterhouse/records?page=1&limit=10'),
+        req('Complete Slaughterhouse Profile', 'PATCH', '/slaughterhouse/profile', {
+          body: {
+            facilityName: 'Kano Central Abattoir',
+            location: 'Kano, Nigeria',
+            state: 'Kano',
+            licenseNumber: 'ABT-2024-001',
+          },
+        }),
       ],
     },
     {
@@ -378,9 +395,17 @@ const collection = {
     {
       name: 'Admin',
       item: [
+        req('Admin Overview', 'GET', '/admin/overview'),
         req('Analytics', 'GET', '/admin/analytics'),
+        req('Livestock Stats', 'GET', '/admin/livestock/stats'),
+        req('List Livestock', 'GET', '/admin/livestock?page=1&limit=10'),
+        req('Visit Stats', 'GET', '/admin/veterinary-visits/stats'),
+        req('List Veterinary Visits', 'GET', '/admin/veterinary-visits?page=1&limit=10'),
+        req('List Slaughterhouses', 'GET', '/admin/slaughterhouses?page=1&limit=10'),
         req('List Farmers', 'GET', '/admin/farmers?page=1&limit=10'),
+        req('Get Farmer Detail', 'GET', '/admin/farmers/{{farmerId}}'),
         req('List Doctors', 'GET', '/admin/doctors?page=1&limit=10'),
+        req('Get Doctor Detail', 'GET', '/admin/doctors/{{doctorId}}'),
         req('Get User by Id', 'GET', '/admin/users/{{farmerId}}'),
         req('Update User State', 'PATCH', '/admin/users/{{farmerId}}', {
           body: { userState: 'active' },

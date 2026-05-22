@@ -302,7 +302,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Abattoir Operator\",\n  \"email\": \"slaughter@example.com\",\n  \"phone\": \"+2348012345678\",\n  \"password\": \"password123\"\n}"
+              "raw": "{\n  \"name\": \"Abattoir Operator\",\n  \"email\": \"slaughter@example.com\",\n  \"phone\": \"+2348012345678\",\n  \"address\": \"12 Abattoir Road, Kano\",\n  \"password\": \"password123\"\n}"
             }
           },
           "event": [
@@ -951,6 +951,70 @@
           ]
         },
         {
+          "name": "Vet Overview (Figma)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/veterinary-visits/overview?month=5&year=2026",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "veterinary-visits",
+                "overview"
+              ],
+              "query": [
+                {
+                  "key": "month",
+                  "value": "5"
+                },
+                {
+                  "key": "year",
+                  "value": "2026"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Vet Analytics (Charts)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/veterinary-visits/analytics?months=6",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "veterinary-visits",
+                "analytics"
+              ],
+              "query": [
+                {
+                  "key": "months",
+                  "value": "6"
+                }
+              ]
+            }
+          }
+        },
+        {
           "name": "Visit Stats (Doctor)",
           "request": {
             "method": "GET",
@@ -985,7 +1049,7 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/veterinary-visits?page=1&limit=10",
+              "raw": "{{baseUrl}}/api/v1/veterinary-visits?page=1&limit=10&search=checkup",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -1002,7 +1066,35 @@
                 {
                   "key": "limit",
                   "value": "10"
+                },
+                {
+                  "key": "search",
+                  "value": "checkup"
                 }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Doctor Overview Alias",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/doctor/overview",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "doctor",
+                "overview"
               ]
             }
           }
@@ -1330,6 +1422,131 @@
               ]
             }
           }
+        },
+        {
+          "name": "Slaughterhouse Overview",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/slaughterhouse/overview",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "slaughterhouse",
+                "overview"
+              ]
+            },
+            "description": "Figma overview: processAlerts, animalsRegisteredTable."
+          }
+        },
+        {
+          "name": "Slaughterhouse Livestock Table",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/slaughterhouse/livestock?page=1&limit=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "slaughterhouse",
+                "livestock"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Slaughterhouse Facility Records",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/slaughterhouse/records?page=1&limit=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "slaughterhouse",
+                "records"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Complete Slaughterhouse Profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/slaughterhouse/profile",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "slaughterhouse",
+                "profile"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"facilityName\": \"Kano Central Abattoir\",\n  \"location\": \"Kano, Nigeria\",\n  \"state\": \"Kano\",\n  \"licenseNumber\": \"ABT-2024-001\"\n}"
+            }
+          }
         }
       ]
     },
@@ -1612,6 +1829,30 @@
       "name": "Admin",
       "item": [
         {
+          "name": "Admin Overview",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/overview",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "overview"
+              ]
+            }
+          }
+        },
+        {
           "name": "Analytics",
           "request": {
             "method": "GET",
@@ -1631,6 +1872,158 @@
                 "v1",
                 "admin",
                 "analytics"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Livestock Stats",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/livestock/stats",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "livestock",
+                "stats"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Livestock",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/livestock?page=1&limit=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "livestock"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Visit Stats",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/veterinary-visits/stats",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "veterinary-visits",
+                "stats"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Veterinary Visits",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/veterinary-visits?page=1&limit=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "veterinary-visits"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Slaughterhouses",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/slaughterhouses?page=1&limit=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "slaughterhouses"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
               ]
             }
           }
@@ -1670,6 +2063,31 @@
           }
         },
         {
+          "name": "Get Farmer Detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/farmers/{{farmerId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "farmers",
+                "{{farmerId}}"
+              ]
+            }
+          }
+        },
+        {
           "name": "List Doctors",
           "request": {
             "method": "GET",
@@ -1699,6 +2117,31 @@
                   "key": "limit",
                   "value": "10"
                 }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Doctor Detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/doctors/{{doctorId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "doctors",
+                "{{doctorId}}"
               ]
             }
           }

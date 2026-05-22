@@ -22,4 +22,10 @@ export class CreateUserDto {
   @IsString()
   @MaxLength(20)
   phone?: string;
+
+  @ApiPropertyOptional({ example: '12 Main Street, Kano' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(300)
+  address?: string;
 }

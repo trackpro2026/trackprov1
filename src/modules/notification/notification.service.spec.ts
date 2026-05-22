@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getModelToken } from '@nestjs/mongoose';
 import { NotificationService } from './notification.service';
 import { Notification } from './entities/notification.entity';
+import { User } from '../user/entities/user.entity';
 
 describe('NotificationService', () => {
   let service: NotificationService;
@@ -14,6 +15,12 @@ describe('NotificationService', () => {
         {
           provide: getModelToken(Notification.name),
           useValue: { create, find: jest.fn(), countDocuments: jest.fn() },
+        },
+        {
+          provide: getModelToken(User.name),
+          useValue: {
+            find: jest.fn().mockReturnValue({ select: jest.fn().mockReturnValue({ lean: jest.fn().mockReturnValue({ exec: jest.fn().mockResolvedValue([]) }) }) }),
+          },
         },
       ],
     }).compile();
