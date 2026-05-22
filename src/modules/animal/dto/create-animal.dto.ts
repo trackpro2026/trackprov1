@@ -11,6 +11,7 @@ import {
 } from 'class-validator';
 import {
   AnimalHealthStatus,
+  AnimalObtainedBy,
   AnimalSex,
   AnimalSpecies,
   AnimalStatus,
@@ -61,6 +62,11 @@ export class CreateAnimalDto {
   @IsString()
   @MaxLength(120)
   pastureOrPen?: string;
+
+  @ApiPropertyOptional({ enum: AnimalObtainedBy, example: AnimalObtainedBy.Native })
+  @IsOptional()
+  @IsEnum(AnimalObtainedBy)
+  obtainedBy?: AnimalObtainedBy;
 
   @IsOptional()
   @IsString()

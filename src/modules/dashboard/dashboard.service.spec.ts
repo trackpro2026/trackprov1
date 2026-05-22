@@ -19,6 +19,13 @@ describe('DashboardService', () => {
         {
           provide: AnimalService,
           useValue: {
+            getFarmerOverview: jest.fn().mockResolvedValue({
+              totalLivestock: 3,
+              healthyLivestock: 2,
+              sickLivestock: 1,
+              livestockTable: [],
+              visitsByMonth: [],
+            }),
             getStatsForFarmer: jest.fn().mockResolvedValue({
               totalActive: 3,
               bySpecies: { cattle: 2 },
@@ -29,6 +36,11 @@ describe('DashboardService', () => {
         {
           provide: HealthRecordService,
           useValue: {
+            getDoctorOverview: jest.fn().mockResolvedValue({
+              totalVisits: 0,
+              pendingVisits: 0,
+              recentVeterinaryVisits: [],
+            }),
             getDoctorVisitStats: jest.fn().mockResolvedValue({
               totalVisits: 0,
               pendingVisits: 0,
@@ -55,6 +67,7 @@ describe('DashboardService', () => {
             distinct: jest.fn().mockResolvedValue([]),
           },
         },
+        // getDoctorDashboard also queries assigned animals
         {
           provide: getModelToken(HealthRecord.name),
           useValue: {
@@ -78,8 +91,8 @@ describe('DashboardService', () => {
 
   it('getFarmerDashboard returns herd summary', async () => {
     const result = await service.getFarmerDashboard(new Types.ObjectId().toString());
-    expect(result.animalStats.totalActive).toBe(3);
-    expect(result.recentAnimals).toEqual([]);
+    expect(result.totalLivestock).toBe(3);
+    expect(result.livestockTable).toEqual([]);
   });
 
   it('getDoctorDashboard returns visit summary', async () => {

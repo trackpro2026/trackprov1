@@ -21,59 +21,7 @@ export class DashboardService {
   ) {}
 
   async getFarmerDashboard(farmerId: string) {
-    const uid = new Types.ObjectId(farmerId);
-    const [animalStats, recentAnimals, sickCount, veterinaryVisits] = await Promise.all([
-      this.animalService.getStatsForFarmer(farmerId),
-      this.animalModel.find({ farmerId: uid }).sort({ updatedAt: -1 }).limit(5).lean(),
-      this.animalModel.countDocuments({ farmerId: uid, healthStatus: 'sick' }),
-      this.healthRecordModel.countDocuments({ farmerId: uid }),
-    ]);
-    const livestockTable = await this.animalModel.aggregate([
-      { $match: { farmerId: uid } },
-      { $sort: { updatedAt: -1 } },
-      { $limit: 10 },
-      {
-        $lookup: {
-          from: 'healthrecords',
-          let: { aid: '$_id' },
-          pipeline: [
-            { $match: { $expr: { $eq: ['$animalId', '$$aid'] } } },
-            { $sort: { visitDate: -1 } },
-            { $limit: 1 },
-          ],
-          as: 'lastVisit',
-        },
-      },
-      {
-        $addFields: {
-          livestockId: { $toString: '$_id' },
-          type: '$species',
-          lastVeterinaryVisit: { $arrayElemAt: ['$lastVisit.visitDate', 0] },
-          lastVaccinationDate: { $arrayElemAt: ['$lastVisit.visitDate', 0] },
-        },
-      },
-      { $project: { lastVisit: 0 } },
-    ]);
-
-    const healthyCount = await this.animalModel.countDocuments({
-      farmerId: uid,
-      healthStatus: 'healthy',
-    });
-    const onTreatmentCount = await this.animalModel.countDocuments({
-      farmerId: uid,
-      healthStatus: { $in: ['sick', 'under_treatment'] },
-    });
-
-    return {
-      animalStats,
-      sickCount,
-      totalLivestock: animalStats.totalActive,
-      healthyLivestock: healthyCount,
-      veterinaryVisits,
-      livestockOnTreatment: onTreatmentCount,
-      recentAnimals,
-      livestockTable,
-    };
+    return this.animalService.getFarmerOverview(farmerId);
   }
 
   async getDoctorDashboard(doctorId: string) {

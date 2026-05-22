@@ -33,6 +33,12 @@ export enum AnimalHealthStatus {
   Unknown = 'unknown',
 }
 
+/** Figma livestock table: Obtained By */
+export enum AnimalObtainedBy {
+  Native = 'native',
+  Acquired = 'acquired',
+}
+
 @Schema({ timestamps: true })
 export class Animal {
   @Prop({ type: Types.ObjectId, ref: 'User', required: true, index: true })
@@ -71,6 +77,9 @@ export class Animal {
 
   @Prop()
   pastureOrPen?: string;
+
+  @Prop({ enum: Object.values(AnimalObtainedBy), default: AnimalObtainedBy.Native })
+  obtainedBy?: AnimalObtainedBy;
 
   @Prop()
   notes?: string;

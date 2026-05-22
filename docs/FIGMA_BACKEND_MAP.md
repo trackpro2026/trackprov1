@@ -31,13 +31,21 @@ All signups accept optional `phone` (Figma forms).
 
 | Figma | API |
 |-------|-----|
-| Create account / Login / Forgot password | `/auth/*` |
-| Overview + livestock table | `GET /dashboard/farmer` or `/dashboard/me` |
-| Livestocks list/detail | `GET/POST/PATCH/DELETE /livestock` |
-| Health history | `GET /veterinary-visits/animal/:id` |
+| Create account / Login / Forgot password | `/auth/signup` (+ `phone`, `address`), `/auth/login`, `/auth/forgot-password` … |
+| Profile / password / settings | `GET/PATCH /users/me`, `PATCH /users/me/password`, `PATCH /users/me/settings` |
+| Overview + livestock table | `GET /dashboard/farmer`, `/farmer/overview`, or `/dashboard/me` — `?month=&year=` |
+| Summary cards | `totalLivestock`, `healthyLivestock`, `sickLivestock`, `veterinaryVisitsInPeriod` |
+| Visit graph | `visitsByMonth[]` on overview |
+| Livestocks list | `GET /livestock` — `?species=`, `?healthStatus=`, `?obtainedBy=native\|acquired`, `?search=` |
+| Livestock stats | `GET /livestock/stats` or `GET /farmer/livestock/stats` |
+| Livestock detail | `GET /livestock/:id` — visits table, vet info, visit type chart, visit graph |
+| CRUD livestock | `POST/PATCH/DELETE /livestock` |
+| Schedule slaughter | `POST /slaughter-records` |
+| Map | `GET /map/markers` |
+| Notifications | `GET /notifications` — auto: vet visit logged/completed, slaughter, health updates |
 | AI triage / vet chat | `/ai/health-check`, `/ai/vet-assistant` |
 
-**Farmer overview fields:** `totalLivestock`, `healthyLivestock`, `livestockOnTreatment`, `livestockTable[]` (id, species, breed, healthStatus, lastVeterinaryVisit).
+**Livestock fields:** `tagId` (Livestock ID), `species` (type), `obtainedBy` (native/acquired), `pastureOrPen` (address label), `healthStatus`, `lastVeterinaryVisit`.
 
 ---
 
@@ -125,6 +133,8 @@ Requires `GEMINI_API_KEY`.
 |-------|-----------|
 | New farmer / vet / slaughterhouse signup | All **admins** |
 | Vet logs visit | Farmer |
+| Visit completed / health status change | Farmer |
+| Slaughter scheduled | Farmer |
 | Visit marked completed | Farmer |
 | Visit deleted | Farmer |
 | Livestock assigned to vet | Doctor |

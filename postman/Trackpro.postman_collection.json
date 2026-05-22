@@ -793,6 +793,30 @@
           ]
         },
         {
+          "name": "Livestock Stats",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/livestock/stats",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "livestock",
+                "stats"
+              ]
+            }
+          }
+        },
+        {
           "name": "List Livestock",
           "request": {
             "method": "GET",
@@ -803,7 +827,7 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/livestock?page=1&limit=10",
+              "raw": "{{baseUrl}}/api/v1/livestock?page=1&limit=10&obtainedBy=native",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -820,13 +844,17 @@
                 {
                   "key": "limit",
                   "value": "10"
+                },
+                {
+                  "key": "obtainedBy",
+                  "value": "native"
                 }
               ]
             }
           }
         },
         {
-          "name": "Get Livestock",
+          "name": "Get Livestock Detail",
           "request": {
             "method": "GET",
             "header": [
@@ -1795,6 +1823,65 @@
                 "v1",
                 "dashboard",
                 "farmer"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Farmer Overview",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/farmer/overview?month=5&year=2026",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "farmer",
+                "overview"
+              ],
+              "query": [
+                {
+                  "key": "month",
+                  "value": "5"
+                },
+                {
+                  "key": "year",
+                  "value": "2026"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Farmer Livestock Stats",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/farmer/livestock/stats",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "farmer",
+                "livestock",
+                "stats"
               ]
             }
           }

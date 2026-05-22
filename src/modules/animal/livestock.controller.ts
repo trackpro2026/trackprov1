@@ -21,7 +21,7 @@ import { SWAGGER_BEARER } from '../../common/swagger/swagger.setup';
 import { LIVESTOCK_TAG } from '../../common/swagger/api-descriptions';
 import { CreateAnimalDto } from './dto/create-animal.dto';
 import { UpdateAnimalDto } from './dto/update-animal.dto';
-import { PaginationDto } from '../../common/dto/pagination.dto';
+import { ListLivestockQueryDto } from './dto/list-livestock-query.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -45,22 +45,38 @@ export class LivestockController {
     return this.animalService.create(dto, farmerId);
   }
 
+  @Get('stats')
+  @UseGuards(RolesGuard)
+  @Roles(Role.Farmer)
+  @ApiOperation({ summary: 'Farmer livestock summary (total / healthy / sick)' })
+  farmerStats(@CurrentUser('id') farmerId: string) {
+    return this.animalService.getFarmerLivestockStats(farmerId);
+  }
+
   @Get()
-  @ApiOperation({ summary: 'List livestock (herd)' })
+  @ApiOperation({
+    summary: 'List livestock (herd)',
+    description: 'Farmers: filter by ?species= &healthStatus= &obtainedBy= &search=',
+  })
   @ApiQuery({ name: 'page', required: false, example: 1 })
   @ApiQuery({ name: 'limit', required: false, example: 10 })
-  findAll(@Query() pagination: PaginationDto, @CurrentUser() user: { id: string; role: Role }) {
+  findAll(@Query() query: ListLivestockQueryDto, @CurrentUser() user: { id: string; role: Role }) {
+    const { page, limit, ...filters } = query;
+    const pagination = { page, limit };
     if (user.role === Role.Doctor) {
       return this.animalService.findForDoctor(user.id, pagination);
     }
     if (user.role === Role.Admin) {
       return this.animalService.findAllAdmin(pagination);
     }
-    return this.animalService.findForFarmer(user.id, pagination);
+    return this.animalService.findForFarmer(user.id, pagination, filters as ListLivestockQueryDto);
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Get livestock by ID' })
+  @ApiOperation({
+    summary: 'Get livestock by ID',
+    description: 'Farmers receive full detail (visits, vet info, charts).',
+  })
   @ApiParam({ name: 'id', description: 'MongoDB animal _id' })
   findOne(
     @Param('id') id: string,
