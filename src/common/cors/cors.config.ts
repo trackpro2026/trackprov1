@@ -5,24 +5,35 @@ import {
 } from '../csrf/csrf.config';
 import { isUniversalCors } from '../csrf/csrf.config';
 
-/** Used when `CORS_UNIVERSAL=false` and `CORS_ORIGINS` is set. */
-export const DEFAULT_CORS_ORIGINS = [
-  'https://trackpro-web.vercel.app',
-  'https://trackpro-admin.vercel.app',
+/** Local dev frontends always permitted when NODE_ENV !== production. */
+export const LOCAL_DEV_CORS_ORIGINS = [
   'http://localhost:3000',
+  'http://127.0.0.1:3000',
   'http://localhost:5173',
   'http://127.0.0.1:5173',
 ] as const;
 
+/** Used when `CORS_UNIVERSAL=false` and `CORS_ORIGINS` is set. */
+export const DEFAULT_CORS_ORIGINS = [
+  'https://trackpro-web.vercel.app',
+  'https://trackpro-admin.vercel.app',
+  ...LOCAL_DEV_CORS_ORIGINS,
+] as const;
+
 export function getAllowedCorsOrigins(): string[] {
   const raw = process.env.CORS_ORIGINS?.trim();
+  let origins: string[];
   if (raw === '*') {
-    return ['*'];
+    origins = ['*'];
+  } else if (raw) {
+    origins = raw.split(',').map((s) => s.trim()).filter(Boolean);
+  } else {
+    origins = [...DEFAULT_CORS_ORIGINS];
   }
-  if (raw) {
-    return raw.split(',').map((s) => s.trim()).filter(Boolean);
+  if (process.env.NODE_ENV !== 'production' && !origins.includes('*')) {
+    origins = [...new Set([...origins, ...LOCAL_DEV_CORS_ORIGINS])];
   }
-  return [...DEFAULT_CORS_ORIGINS];
+  return origins;
 }
 
 export function corsOriginDelegate(
