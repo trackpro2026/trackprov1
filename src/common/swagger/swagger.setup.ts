@@ -50,6 +50,9 @@ Optional header: \`X-Client-Platform: mobile\` or \`web\`.
 | POST | /livestock | Farmer — create |
 | GET | /livestock | Farmer / Doctor / Admin — list |
 | GET | /livestock/:id | Farmer / Doctor / Admin — one |
+| GET | /livestock/:id/qr-code | Farmer — QR payload + PNG data URL |
+| POST | /livestock/:id/transfer | Farmer — transfer to another farmer |
+| PATCH | /livestock/:id/slaughter | Farmer — mark slaughtered |
 | PATCH | /livestock/:id | Farmer / Doctor / Admin — update |
 | DELETE | /livestock/:id | Farmer / Admin — delete |
 

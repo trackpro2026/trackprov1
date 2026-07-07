@@ -76,10 +76,20 @@ describe('Livestock modules (integration)', () => {
 
   it('farmer dashboard returns herd stats', async () => {
     const res = await request(app.getHttpServer())
-      .get(api('/dashboard/farmer'))
+      .get(api('/farmer/overview'))
       .set('Authorization', `Bearer ${farmerToken}`)
       .expect(200);
-    expect(res.body).toHaveProperty('animalStats');
-    expect(res.body.animalStats.totalActive).toBeGreaterThanOrEqual(1);
+    expect(res.body).toHaveProperty('summaryCards');
+    expect(res.body.summaryCards.totalLivestock).toBeGreaterThanOrEqual(1);
+    expect(res.body).toHaveProperty('livestockTable');
+  });
+
+  it('returns QR code PNG data URL for livestock', async () => {
+    const res = await request(app.getHttpServer())
+      .get(api(`/livestock/${animalId}/qr-code`))
+      .set('Authorization', `Bearer ${farmerToken}`)
+      .expect(200);
+    expect(res.body).toHaveProperty('qrPayload');
+    expect(res.body.qrCodeDataUrl).toMatch(/^data:image\/png;base64,/);
   });
 });

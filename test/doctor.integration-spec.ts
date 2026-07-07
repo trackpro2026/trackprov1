@@ -75,9 +75,11 @@ describe('Doctor (integration)', () => {
       .expect(200);
 
     const dash = await request(app.getHttpServer())
-      .get(api('/dashboard/doctor'))
+      .get(api('/doctor/overview'))
       .set('Authorization', `Bearer ${token}`)
       .expect(200);
-    expect(dash.body).toHaveProperty('assignedAnimalCount');
+    expect(dash.body).toHaveProperty('summaryCards');
+    expect(dash.body.summaryCards).toHaveProperty('totalVisits');
+    expect(dash.body).toHaveProperty('veterinaryVisitsTable');
   });
 });
