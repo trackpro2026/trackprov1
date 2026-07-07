@@ -21,6 +21,7 @@ import { SWAGGER_BEARER } from '../../common/swagger/swagger.setup';
 import { LIVESTOCK_TAG } from '../../common/swagger/api-descriptions';
 import { CreateAnimalDto } from './dto/create-animal.dto';
 import { UpdateAnimalDto } from './dto/update-animal.dto';
+import { TransferLivestockDto } from './dto/transfer-livestock.dto';
 import { ListLivestockQueryDto } from './dto/list-livestock-query.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
@@ -70,6 +71,37 @@ export class LivestockController {
       return this.animalService.findAllAdmin(pagination);
     }
     return this.animalService.findForFarmer(user.id, pagination, filters as ListLivestockQueryDto);
+  }
+
+  @Get(':id/qr-code')
+  @UseGuards(RolesGuard)
+  @Roles(Role.Farmer)
+  @ApiOperation({ summary: 'Generate QR code data for livestock (Figma)' })
+  getQrCode(@Param('id') id: string, @CurrentUser('id') farmerId: string) {
+    return this.animalService.getQrCode(id, farmerId);
+  }
+
+  @Post(':id/transfer')
+  @UseGuards(RolesGuard)
+  @Roles(Role.Farmer)
+  @ApiOperation({
+    summary: 'Transfer livestock to another farmer',
+    description: 'Figma Transfer Animal — receiver phone/email must match a registered farmer.',
+  })
+  transfer(
+    @Param('id') id: string,
+    @Body() dto: TransferLivestockDto,
+    @CurrentUser('id') farmerId: string,
+  ) {
+    return this.animalService.transferLivestock(id, farmerId, dto);
+  }
+
+  @Patch(':id/slaughter')
+  @UseGuards(RolesGuard)
+  @Roles(Role.Farmer)
+  @ApiOperation({ summary: 'Mark livestock as slaughtered (Figma)' })
+  markSlaughtered(@Param('id') id: string, @CurrentUser('id') farmerId: string) {
+    return this.animalService.markSlaughtered(id, farmerId);
   }
 
   @Get(':id')

@@ -64,6 +64,64 @@ Optional header: \`X-Client-Platform: mobile\` or \`web\`.
 
 ### Shared (all roles): \`/notifications\`, \`/map/markers\`, \`/dashboard/me\`
 
+### Notifications \`/notifications\` (all roles)
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | /notifications | List + groupedByDate |
+| GET | /notifications/unread-count | Bell badge count |
+| PATCH | /notifications/read-all | Mark all read |
+| PATCH | /notifications/:id/read | Mark one read |
+
+### Admin portal \`/admin\`
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | /admin/me | Admin profile (getMe) |
+| GET | /admin/overview | Platform overview |
+| GET | /admin/farmers/stats | Farmer summary cards |
+| GET | /admin/farmers | Farmers table |
+| GET | /admin/farmers/:id | Farmer detail + livestock |
+| GET | /admin/livestock/stats | Livestock summary cards |
+| GET | /admin/livestock | Livestock table (filters) |
+| GET | /admin/livestock/:id | Livestock detail |
+| GET | /admin/slaughterhouses/stats | Slaughterhouse cards |
+| GET | /admin/slaughterhouses | Slaughterhouses table |
+| GET | /admin/slaughterhouses/:id | Facility + slaughtered table |
+| GET | /admin/doctors/stats | Veterinarian cards |
+| GET | /admin/doctors | Veterinarians table |
+| GET | /admin/doctors/:id | Vet detail + visits |
+| GET | /admin/veterinary-visits | All visits |
+| GET | /admin/veterinary-visits/:id | Visit detail |
+
+### Veterinarian portal \`/doctor\`
+| Method | Path | Who |
+|--------|------|-----|
+| GET | /doctor/me | Vet profile (getMe) |
+| GET | /doctor/overview | Dashboard + visits table |
+| GET | /doctor/visits/stats | Summary cards |
+| GET | /doctor/livestock/scan | QR scan for Add Visit |
+| POST | /doctor/visits | Submit visit result |
+| GET | /doctor/visits | List visits |
+| GET | /doctor/visits/:id | Visit detail |
+
+### Notifications \`/notifications\` (all roles)
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | /notifications | List + groupedByDate |
+| GET | /notifications/unread-count | Bell badge count |
+| PATCH | /notifications/read-all | Mark all read |
+| PATCH | /notifications/:id/read | Mark one read |
+
+### Slaughterhouse portal \`/slaughterhouse\`
+| Method | Path | Who |
+|--------|------|-----|
+| GET | /slaughterhouse/me | Operator profile (getMe) |
+| GET | /slaughterhouse/overview | Overview + slaughtered table |
+| GET | /slaughterhouse/livestock/stats | Total slaughtered count |
+| GET | /slaughterhouse/livestock/scan | QR / tag lookup for Add Slaughter |
+| POST | /slaughterhouse/livestock/slaughter | Record slaughter (healthy only) |
+| GET | /slaughterhouse/livestock | Paginated slaughtered livestock list |
+| GET | /slaughterhouse/livestock/:id | Slaughtered livestock detail |
+
 ### AI \`/ai/*\` — unchanged (Gemini)
 
 Pagination: \`?page=1&limit=10\` on list endpoints.

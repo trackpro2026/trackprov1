@@ -5,7 +5,9 @@ import {
   IsUrl,
   IsNumber,
   Min,
+  IsEnum,
 } from 'class-validator';
+import { UserGender } from '../entities/user.entity';
 
 export class UpdateProfileDto {
   @IsOptional()
@@ -17,6 +19,10 @@ export class UpdateProfileDto {
   @IsString()
   @MaxLength(20)
   phone?: string;
+
+  @IsOptional()
+  @IsEnum(UserGender)
+  gender?: UserGender;
 
   @IsOptional()
   @IsUrl()

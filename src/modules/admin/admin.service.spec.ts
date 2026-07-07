@@ -3,6 +3,7 @@ import { getModelToken } from '@nestjs/mongoose';
 import { AdminService } from './admin.service';
 import { UserService } from '../user/user.service';
 import { HealthRecordService } from '../health-record/health-record.service';
+import { AnimalService } from '../animal/animal.service';
 import { User } from '../user/entities/user.entity';
 import { Animal } from '../animal/entities/animal.entity';
 import { HealthRecord } from '../health-record/entities/health-record.entity';
@@ -37,6 +38,12 @@ describe('AdminService', () => {
           },
         },
         {
+          provide: AnimalService,
+          useValue: {
+            findOneDetailedForSlaughterhouse: jest.fn().mockResolvedValue({ livestock: {} }),
+          },
+        },
+        {
           provide: getModelToken(User.name),
           useValue: {
             countDocuments: jest.fn().mockResolvedValue(5),
@@ -53,15 +60,25 @@ describe('AdminService', () => {
         },
         {
           provide: getModelToken(HealthRecord.name),
-          useValue: { countDocuments: jest.fn().mockResolvedValue(2) },
+          useValue: {
+            countDocuments: jest.fn().mockResolvedValue(2),
+            distinct: jest.fn().mockResolvedValue([]),
+            aggregate: jest.fn().mockResolvedValue([]),
+          },
         },
         {
           provide: getModelToken(Slaughterhouse.name),
-          useValue: { countDocuments: jest.fn().mockResolvedValue(1) },
+          useValue: {
+            countDocuments: jest.fn().mockResolvedValue(1),
+            aggregate: jest.fn().mockResolvedValue([]),
+          },
         },
         {
           provide: getModelToken(SlaughterRecord.name),
-          useValue: { countDocuments: jest.fn().mockResolvedValue(0) },
+          useValue: {
+            countDocuments: jest.fn().mockResolvedValue(0),
+            aggregate: jest.fn().mockResolvedValue([]),
+          },
         },
       ],
     }).compile();

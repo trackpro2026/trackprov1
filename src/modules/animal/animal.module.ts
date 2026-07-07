@@ -7,10 +7,12 @@ import { LivestockController } from './livestock.controller';
 import { NotificationModule } from '../notification/notification.module';
 import { HealthRecord, HealthRecordSchema } from '../health-record/entities/health-record.entity';
 import { FarmerPortalController } from './farmer-portal.controller';
+import { UserModule } from '../user/user.module';
 
 @Module({
   imports: [
     NotificationModule,
+    UserModule,
     MongooseModule.forFeature([
       { name: Animal.name, schema: AnimalSchema },
       { name: User.name, schema: UserSchema },

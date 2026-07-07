@@ -1,6 +1,7 @@
 import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AnimalService } from './animal.service';
+import { UserService } from '../user/user.service';
 import { SWAGGER_BEARER } from '../../common/swagger/swagger.setup';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
@@ -14,7 +15,20 @@ import { FarmerOverviewQueryDto } from './dto/farmer-overview-query.dto';
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(Role.Farmer)
 export class FarmerPortalController {
-  constructor(private readonly animalService: AnimalService) {}
+  constructor(
+    private readonly animalService: AnimalService,
+    private readonly userService: UserService,
+  ) {}
+
+  @Get('me')
+  @ApiOperation({
+    summary: 'Farmer profile (getMe)',
+    description:
+      'Figma Profile: fullName, email, phone, gender, profilePictureUrl, unreadNotificationCount, farm fields.',
+  })
+  getMe(@CurrentUser('id') farmerId: string) {
+    return this.userService.findMe(farmerId);
+  }
 
   @Get('overview')
   @ApiOperation({

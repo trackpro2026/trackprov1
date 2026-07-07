@@ -24,6 +24,8 @@ export enum AnimalStatus {
   Sold = 'sold',
   Deceased = 'deceased',
   Quarantine = 'quarantine',
+  Slaughtered = 'slaughtered',
+  Transferred = 'transferred',
 }
 
 export enum AnimalHealthStatus {
@@ -37,6 +39,7 @@ export enum AnimalHealthStatus {
 export enum AnimalObtainedBy {
   Native = 'native',
   Acquired = 'acquired',
+  Artificial = 'artificial',
 }
 
 @Schema({ timestamps: true })
@@ -59,6 +62,13 @@ export class Animal {
 
   @Prop()
   breed?: string;
+
+  /** Figma "Breed Type" e.g. Exotic */
+  @Prop()
+  breedType?: string;
+
+  @Prop()
+  dateObtained?: Date;
 
   @Prop({ enum: Object.values(AnimalSex), default: AnimalSex.Unknown })
   sex: AnimalSex;

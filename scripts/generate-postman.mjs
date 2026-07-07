@@ -66,6 +66,10 @@ const saveToken = [
   "    pm.environment.set('doctorId', j.user.id);",
   "    pm.collectionVariables.set('doctorId', j.user.id);",
   '  }',
+  "  if (j.user.role === 'slaughterhouse') {",
+  "    pm.environment.set('slaughterhouseId', j.user.id);",
+  "    pm.collectionVariables.set('slaughterhouseId', j.user.id);",
+  '  }',
   '}',
 ].join('\n');
 
@@ -80,10 +84,21 @@ const saveAnimalId = [
 
 const saveHealthRecordId = [
   'const j = pm.response.json();',
-  'const id = j._id || j.id;',
+  'const id = j._id || j.id || j.visitId || (j.record && j.record._id);',
   "if (id) {",
   "  pm.environment.set('healthRecordId', id);",
   "  pm.collectionVariables.set('healthRecordId', id);",
+  '}',
+].join('\n');
+
+const saveNotificationId = [
+  'const j = pm.response.json();',
+  'const items = j.items || j.data || j.notifications || [];',
+  'const first = Array.isArray(items) ? items[0] : null;',
+  'const id = first && (first._id || first.id);',
+  "if (id) {",
+  "  pm.environment.set('notificationId', id);",
+  "  pm.collectionVariables.set('notificationId', id);",
   '}',
 ].join('\n');
 
@@ -112,6 +127,7 @@ const collection = {
     { key: 'healthRecordId', value: '' },
     { key: 'slaughterhouseId', value: '' },
     { key: 'slaughterRecordId', value: '' },
+    { key: 'notificationId', value: '' },
     { key: 'uploadUrl', value: '' },
   ],
   item: [
@@ -233,8 +249,40 @@ const collection = {
       ],
     },
     {
+      name: 'Farmer Portal',
+      item: [
+        req('Farmer getMe', 'GET', '/farmer/me', {
+          description: 'Figma Profile: fullName, userId, profilePictureUrl, unreadNotificationCount.',
+        }),
+        req('Farmer Overview', 'GET', '/farmer/overview?month=5&year=2026', {
+          description: 'Figma Overview: summaryCards, livestockTable.',
+        }),
+        req('Farmer Livestock Stats', 'GET', '/farmer/livestock/stats'),
+      ],
+    },
+    {
       name: 'Doctor Portal',
       item: [
+        req('Doctor getMe', 'GET', '/doctor/me'),
+        req('Doctor Overview', 'GET', '/doctor/overview?month=5&year=2026', {
+          description: 'Figma: summaryCards + veterinaryVisitsTable.',
+        }),
+        req('Doctor Visit Stats', 'GET', '/doctor/visits/stats'),
+        req('List Doctor Visits', 'GET', '/doctor/visits?page=1&limit=10&search=checkup'),
+        req('Doctor Visit Detail', 'GET', '/doctor/visits/{{healthRecordId}}'),
+        req('Scan Livestock (Add Visit)', 'GET', '/doctor/livestock/scan?tagId=EAR-001'),
+        req('Record Visit (Submit Result)', 'POST', '/doctor/visits', {
+          body: {
+            animalId: '{{animalId}}',
+            visitDate: '2026-05-17T12:00:00.000Z',
+            type: 'checkup',
+            summary: 'Routine checkup — animal healthy',
+            healthStatus: 'healthy',
+            status: 'completed',
+          },
+          test: saveHealthRecordId,
+        }),
+        req('Doctor Analytics', 'GET', '/doctor/analytics?months=6'),
         req('Complete Profile', 'PATCH', '/doctor/profile', {
           body: {
             clinicName: 'Valley Veterinary Clinic',
@@ -257,6 +305,9 @@ const collection = {
             name: 'Bessie',
             species: 'cattle',
             breed: 'Angus',
+            breedType: 'Exotic',
+            dateObtained: '2024-04-18',
+            obtainedBy: 'native',
             sex: 'female',
             weightKg: 450,
             healthStatus: 'healthy',
@@ -268,6 +319,20 @@ const collection = {
         req('Livestock Stats', 'GET', '/livestock/stats'),
         req('List Livestock', 'GET', '/livestock?page=1&limit=10&obtainedBy=native'),
         req('Get Livestock Detail', 'GET', '/livestock/{{animalId}}'),
+        req('Get QR Code (PNG data URL)', 'GET', '/livestock/{{animalId}}/qr-code', {
+          description: 'Returns qrPayload + qrCodeDataUrl (base64 PNG) for Figma QR display.',
+        }),
+        req('Transfer Livestock', 'POST', '/livestock/{{animalId}}/transfer', {
+          body: {
+            receiverFirstName: 'Jane',
+            receiverLastName: 'Doe',
+            receiverPhone: '+2349012345678',
+            receiverEmail: 'jane@farm.com',
+          },
+        }),
+        req('Mark Slaughtered', 'PATCH', '/livestock/{{animalId}}/slaughter', {
+          description: 'Farmer marks livestock as slaughtered (Figma).',
+        }),
         req('Update Livestock', 'PATCH', '/livestock/{{animalId}}', {
           body: { weightKg: 455, healthStatus: 'healthy' },
         }),
@@ -302,7 +367,12 @@ const collection = {
     {
       name: 'Notifications',
       item: [
-        req('List Notifications', 'GET', '/notifications?page=1&limit=20'),
+        req('List Notifications', 'GET', '/notifications?page=1&limit=20', {
+          test: saveNotificationId,
+          description: 'Grouped by date with relativeTime and unreadCount.',
+        }),
+        req('Unread Count', 'GET', '/notifications/unread-count'),
+        req('Mark Notification Read', 'PATCH', '/notifications/{{notificationId}}/read'),
         req('Mark All Read', 'PATCH', '/notifications/read-all'),
       ],
     },
@@ -334,9 +404,16 @@ const collection = {
         }),
         req('List Slaughter Records', 'GET', '/slaughter-records?page=1&limit=10'),
         req('Slaughterhouse Overview', 'GET', '/slaughterhouse/overview', {
-          description: 'Figma overview: processAlerts, animalsRegisteredTable.',
+          description: 'Figma overview: totalLivestockSlaughtered, livestockSlaughteredTable.',
+        }),
+        req('Slaughterhouse getMe', 'GET', '/slaughterhouse/me'),
+        req('Slaughterhouse Livestock Stats', 'GET', '/slaughterhouse/livestock/stats'),
+        req('Scan Livestock (QR)', 'GET', '/slaughterhouse/livestock/scan?tagId=EAR-001'),
+        req('Record Slaughter', 'POST', '/slaughterhouse/livestock/slaughter', {
+          body: { animalId: '{{animalId}}', liveWeightKg: 450 },
         }),
         req('Slaughterhouse Livestock Table', 'GET', '/slaughterhouse/livestock?page=1&limit=10'),
+        req('Slaughterhouse Livestock Detail', 'GET', '/slaughterhouse/livestock/{{animalId}}'),
         req('Slaughterhouse Facility Records', 'GET', '/slaughterhouse/records?page=1&limit=10'),
         req('Complete Slaughterhouse Profile', 'PATCH', '/slaughterhouse/profile', {
           body: {
@@ -398,17 +475,25 @@ const collection = {
     {
       name: 'Admin',
       item: [
+        req('Admin getMe', 'GET', '/admin/me'),
         req('Admin Overview', 'GET', '/admin/overview'),
         req('Analytics', 'GET', '/admin/analytics'),
-        req('Livestock Stats', 'GET', '/admin/livestock/stats'),
-        req('List Livestock', 'GET', '/admin/livestock?page=1&limit=10'),
-        req('Visit Stats', 'GET', '/admin/veterinary-visits/stats'),
-        req('List Veterinary Visits', 'GET', '/admin/veterinary-visits?page=1&limit=10'),
-        req('List Slaughterhouses', 'GET', '/admin/slaughterhouses?page=1&limit=10'),
+        req('Farmer Stats', 'GET', '/admin/farmers/stats'),
         req('List Farmers', 'GET', '/admin/farmers?page=1&limit=10'),
         req('Get Farmer Detail', 'GET', '/admin/farmers/{{farmerId}}'),
+        req('Livestock Stats', 'GET', '/admin/livestock/stats'),
+        req('List Livestock', 'GET', '/admin/livestock?page=1&limit=10'),
+        req('Get Livestock Detail', 'GET', '/admin/livestock/{{animalId}}'),
+        req('Slaughterhouse Stats', 'GET', '/admin/slaughterhouses/stats'),
+        req('List Slaughterhouses', 'GET', '/admin/slaughterhouses?page=1&limit=10'),
+        req('Get Slaughterhouse Detail', 'GET', '/admin/slaughterhouses/{{slaughterhouseId}}'),
+        req('Doctor Stats', 'GET', '/admin/doctors/stats'),
         req('List Doctors', 'GET', '/admin/doctors?page=1&limit=10'),
         req('Get Doctor Detail', 'GET', '/admin/doctors/{{doctorId}}'),
+        req('Visit Stats', 'GET', '/admin/veterinary-visits/stats'),
+        req('List Veterinary Visits', 'GET', '/admin/veterinary-visits?page=1&limit=10'),
+        req('Get Visit Detail', 'GET', '/admin/veterinary-visits/{{healthRecordId}}'),
+        req('List Slaughterhouse Operators', 'GET', '/admin/slaughterhouse-operators?page=1&limit=10'),
         req('Get User by Id', 'GET', '/admin/users/{{farmerId}}'),
         req('Update User State', 'PATCH', '/admin/users/{{farmerId}}', {
           body: { userState: 'active' },
@@ -513,6 +598,8 @@ const environment = {
     { key: 'doctorId', value: '', type: 'default', enabled: true },
     { key: 'animalId', value: '', type: 'default', enabled: true },
     { key: 'healthRecordId', value: '', type: 'default', enabled: true },
+    { key: 'slaughterhouseId', value: '', type: 'default', enabled: true },
+    { key: 'notificationId', value: '', type: 'default', enabled: true },
     { key: 'uploadUrl', value: '', type: 'default', enabled: true },
   ],
   _postman_variable_scope: 'environment',

@@ -2,6 +2,7 @@ import {
   ConflictException,
   ForbiddenException,
   Injectable,
+  BadRequestException,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
@@ -11,6 +12,7 @@ import {
   AnimalDocument,
   AnimalHealthStatus,
   AnimalObtainedBy,
+  AnimalStatus,
 } from './entities/animal.entity';
 import {
   HealthRecord,
@@ -23,6 +25,7 @@ import { UpdateAnimalDto } from './dto/update-animal.dto';
 import { PaginationDto } from '../../common/dto/pagination.dto';
 import { ListLivestockQueryDto } from './dto/list-livestock-query.dto';
 import { FarmerOverviewQueryDto } from './dto/farmer-overview-query.dto';
+import { TransferLivestockDto } from './dto/transfer-livestock.dto';
 import { Role } from '../../common/decorators/roles.decorator';
 import { NotificationService } from '../notification/notification.service';
 import {
@@ -50,6 +53,7 @@ export class AnimalService {
       ...dto,
       farmerId: new Types.ObjectId(farmerId),
       dateOfBirth: dto.dateOfBirth ? new Date(dto.dateOfBirth) : undefined,
+      dateObtained: dto.dateObtained ? new Date(dto.dateObtained) : undefined,
       assignedDoctorId: dto.assignedDoctorId
         ? new Types.ObjectId(dto.assignedDoctorId)
         : undefined,
@@ -152,7 +156,122 @@ export class AnimalService {
     if (String(animal.farmerId) !== farmerId) {
       throw new ForbiddenException('You cannot access this animal');
     }
+    return this.buildLivestockDetailResponse(id, animal);
+  }
 
+  /** Figma Add Slaughter — scan QR / tag lookup (any active livestock). */
+  async lookupLivestockForSlaughterScan(input: {
+    tagId?: string;
+    animalId?: string;
+    qrPayload?: string;
+  }) {
+    const animal = await this.resolveAnimalFromScan(input);
+    return this.buildSlaughterScanResponse(animal);
+  }
+
+  /** Figma slaughterhouse livestock detail (no farmer ownership check). */
+  async findOneDetailedForSlaughterhouse(id: string) {
+    const animal = await this.animalModel.findById(id).lean().exec();
+    if (!animal) throw new NotFoundException('Animal not found');
+    return this.buildLivestockDetailResponse(id, animal);
+  }
+
+  async resolveAnimalFromScan(input: {
+    tagId?: string;
+    animalId?: string;
+    qrPayload?: string;
+  }) {
+    const { tagId: parsedTag, animalId: parsedId } = this.parseScanInput(input);
+    if (parsedId && Types.ObjectId.isValid(parsedId)) {
+      const byId = await this.animalModel.findById(parsedId).exec();
+      if (byId) return byId;
+    }
+    if (parsedTag) {
+      const byTag = await this.animalModel.findOne({ tagId: parsedTag }).exec();
+      if (byTag) return byTag;
+    }
+    throw new NotFoundException('Livestock not found for this scan');
+  }
+
+  private parseScanInput(input: {
+    tagId?: string;
+    animalId?: string;
+    qrPayload?: string;
+  }) {
+    if (input.qrPayload?.trim()) {
+      const raw = input.qrPayload.trim();
+      if (raw.startsWith('trackpro:livestock:')) {
+        const parts = raw.split(':');
+        return { tagId: parts[2], animalId: parts[3] };
+      }
+      if (Types.ObjectId.isValid(raw)) {
+        return { tagId: undefined, animalId: raw };
+      }
+      return { tagId: raw, animalId: undefined };
+    }
+    return { tagId: input.tagId?.trim(), animalId: input.animalId?.trim() };
+  }
+
+  private async buildSlaughterScanResponse(animal: AnimalDocument | Record<string, unknown>) {
+    const animalId = String((animal as { _id: Types.ObjectId })._id);
+    const visitCount = await this.healthRecordModel.countDocuments({
+      animalId: new Types.ObjectId(animalId),
+    });
+    const farmer = await this.userModel
+      .findById((animal as { farmerId: Types.ObjectId }).farmerId)
+      .select('name')
+      .lean()
+      .exec();
+    const healthStatus = (animal as { healthStatus?: AnimalHealthStatus }).healthStatus;
+    const status = (animal as { status?: AnimalStatus }).status;
+    const healthy = healthStatus === AnimalHealthStatus.Healthy;
+    const alreadySlaughtered = status === AnimalStatus.Slaughtered;
+
+    return {
+      livestock: {
+        id: animalId,
+        livestockId: (animal as { tagId: string }).tagId,
+        gender: (animal as { sex?: string }).sex,
+        obtainedBy: (animal as { obtainedBy?: string }).obtainedBy,
+        healthStatus,
+        dateObtained:
+          (animal as { dateObtained?: Date }).dateObtained ??
+          (animal as { dateOfBirth?: Date }).dateOfBirth,
+        numberOfVeterinaryVisits: visitCount,
+        type: this.buildTypeLabel(
+          animal as { breedType?: string; breed?: string; species?: string },
+        ),
+        profileImageUrl: (animal as { imageUrls?: string[] }).imageUrls?.[0],
+        ownerName: farmer?.name,
+        species: (animal as { species?: string }).species,
+        breed: (animal as { breed?: string }).breed,
+        status,
+      },
+      canSlaughter: healthy && !alreadySlaughtered,
+      slaughterBlockedReason: alreadySlaughtered
+        ? 'This livestock has already been slaughtered.'
+        : !healthy
+          ? 'Livestock must be healthy before it can be slaughtered!'
+          : undefined,
+    };
+  }
+
+  private async buildLivestockDetailResponse(id: string, animal: AnimalDocument | Record<string, unknown>) {
+    const a = animal as {
+      _id: Types.ObjectId;
+      tagId: string;
+      farmerId: Types.ObjectId;
+      assignedDoctorId?: Types.ObjectId;
+      species?: string;
+      sex?: string;
+      obtainedBy?: string;
+      healthStatus?: string;
+      dateObtained?: Date;
+      dateOfBirth?: Date;
+      imageUrls?: string[];
+      breed?: string;
+      breedType?: string;
+    };
     const [visits, visitTypeBreakdown, assignedVet] = await Promise.all([
       this.healthRecordModel
         .find({ animalId: id })
@@ -163,9 +282,9 @@ export class AnimalService {
         { $match: { animalId: new Types.ObjectId(id) } },
         { $group: { _id: '$type', count: { $sum: 1 } } },
       ]),
-      animal.assignedDoctorId
+      a.assignedDoctorId
         ? this.userModel
-            .findById(animal.assignedDoctorId)
+            .findById(a.assignedDoctorId)
             .select('name email phone doctorProfile')
             .lean()
             .exec()
@@ -180,7 +299,7 @@ export class AnimalService {
           ...v,
           id: String(v._id),
           visitId: String(v._id),
-          livestockId: animal.tagId,
+          livestockId: a.tagId,
           summary: v.reason ?? v.type,
           visitDateTime: v.visitDate,
           veterinarianName: doctor?.name,
@@ -192,15 +311,17 @@ export class AnimalService {
       livestock: {
         ...animal,
         id: String(animal._id),
-        livestockId: animal.tagId,
-        category: animal.species,
-        gender: animal.sex,
-        dateObtained: (animal as { createdAt?: Date }).createdAt ?? animal.dateOfBirth,
-        numberOfVeterinaryVisits: visits.length,
-        ageYears: this.ageYearsFromBirth(animal.dateOfBirth),
-      },
+          livestockId: a.tagId,
+          type: this.buildTypeLabel(a),
+          category: a.species,
+          gender: a.sex,
+          profileImageUrl: a.imageUrls?.[0],
+          dateObtained: a.dateObtained ?? a.dateOfBirth,
+          numberOfVeterinaryVisits: visits.length,
+          ageYears: this.ageYearsFromBirth(a.dateOfBirth),
+        },
       visitType: lastVisit?.type ?? 'checkup',
-      healthStatusLabel: animal.healthStatus,
+      healthStatusLabel: a.healthStatus,
       visitTypeChart: visitTypeBreakdown.map((r) => ({ type: r._id, count: r.count })),
       visitsByMonth: await this.getVisitsByMonthForAnimal(id, 12),
       veterinarian: assignedVet
@@ -269,6 +390,7 @@ export class AnimalService {
       : undefined;
     const patch: Record<string, unknown> = { ...dto };
     if (dto.dateOfBirth) patch.dateOfBirth = new Date(dto.dateOfBirth);
+    if (dto.dateObtained) patch.dateObtained = new Date(dto.dateObtained);
     if (dto.assignedDoctorId) patch.assignedDoctorId = new Types.ObjectId(dto.assignedDoctorId);
     const updated = await this.animalModel
       .findByIdAndUpdate(id, { $set: patch }, { new: true })
@@ -313,6 +435,94 @@ export class AnimalService {
     await this.findOneRaw(id, userId, role);
     await this.animalModel.findByIdAndDelete(id).exec();
     return { message: 'Animal removed' };
+  }
+
+  async transferLivestock(id: string, farmerId: string, dto: TransferLivestockDto) {
+    const animal = await this.animalModel.findById(id).exec();
+    if (!animal) throw new NotFoundException('Animal not found');
+    if (String(animal.farmerId) !== farmerId) {
+      throw new ForbiddenException('You cannot transfer this animal');
+    }
+    if (animal.status === AnimalStatus.Slaughtered) {
+      throw new BadRequestException('This animal has already been slaughtered');
+    }
+
+    const phone = dto.receiverPhone.replace(/\s/g, '');
+    const receiverQuery: Record<string, unknown> = {
+      role: Role.Farmer,
+      $or: [{ phone }],
+    };
+    if (dto.receiverEmail) {
+      receiverQuery.$or = [{ phone }, { email: dto.receiverEmail.toLowerCase() }];
+    }
+    const receiver = await this.userModel.findOne(receiverQuery).exec();
+    if (!receiver) {
+      throw new BadRequestException(
+        'No farmer account found for the receiver phone or email. They must register first.',
+      );
+    }
+    if (String(receiver._id) === farmerId) {
+      throw new BadRequestException('Cannot transfer livestock to yourself');
+    }
+
+    animal.farmerId = receiver._id as Types.ObjectId;
+    animal.status = AnimalStatus.Transferred;
+    animal.assignedDoctorId = undefined;
+    await animal.save();
+
+    void this.notificationService.notify(String(receiver._id), {
+      title: 'Livestock transferred to you',
+      message: `${dto.receiverFirstName} received ${animal.name} (${animal.tagId}) from a farmer transfer.`,
+      type: NotificationType.Livestock,
+      relatedId: id,
+      relatedType: NotificationRelatedType.Animal,
+    });
+
+    return {
+      message: 'Livestock transferred successfully',
+      livestockId: animal.tagId,
+      newOwnerId: String(receiver._id),
+      newOwnerName: receiver.name,
+    };
+  }
+
+  async markSlaughtered(id: string, farmerId: string) {
+    const animal = await this.animalModel.findById(id).exec();
+    if (!animal) throw new NotFoundException('Animal not found');
+    if (String(animal.farmerId) !== farmerId) {
+      throw new ForbiddenException('You cannot update this animal');
+    }
+    animal.status = AnimalStatus.Slaughtered;
+    await animal.save();
+    return {
+      message: 'Livestock marked as slaughtered',
+      livestockId: animal.tagId,
+      status: animal.status,
+    };
+  }
+
+  async getQrCode(id: string, farmerId: string) {
+    const animal = await this.animalModel.findById(id).lean().exec();
+    if (!animal) throw new NotFoundException('Animal not found');
+    if (String(animal.farmerId) !== farmerId) {
+      throw new ForbiddenException('You cannot access this animal');
+    }
+    const qrPayload = `trackpro:livestock:${animal.tagId}:${id}`;
+    const QRCode = await import('qrcode');
+    const qrCodeDataUrl = await QRCode.toDataURL(qrPayload, {
+      width: 400,
+      margin: 2,
+      errorCorrectionLevel: 'M',
+    });
+    return {
+      livestockId: animal.tagId,
+      animalId: id,
+      name: animal.name,
+      profileImageUrl: animal.imageUrls?.[0],
+      qrPayload,
+      qrCodeDataUrl,
+      scanUrl: `/api/v1/livestock/${id}`,
+    };
   }
 
   async getStatsForFarmer(farmerId: string) {
@@ -372,7 +582,19 @@ export class AnimalService {
         {
           $addFields: {
             livestockId: '$tagId',
-            type: '$species',
+            type: {
+              $cond: {
+                if: { $and: ['$breedType', '$breed'] },
+                then: { $concat: ['$breedType', ' (', '$breed', ')'] },
+                else: {
+                  $cond: {
+                    if: { $and: ['$species', '$breed'] },
+                    then: { $concat: ['$species', ' / ', '$breed'] },
+                    else: { $ifNull: ['$breedType', { $ifNull: ['$breed', '$species'] }] },
+                  },
+                },
+              },
+            },
             addressLabel: '$pastureOrPen',
             lastVeterinaryVisit: { $arrayElemAt: ['$lastVisit.visitDate', 0] },
           },
@@ -383,13 +605,33 @@ export class AnimalService {
     ]);
 
     return {
-      items: items.map((a) => ({ ...a, id: String(a._id) })),
+      items: items.map((a) => this.mapLivestockListItem(a)),
       meta: { total, page, limit, totalPages: Math.ceil(total / limit) || 1 },
     };
   }
 
+  private mapLivestockListItem(a: Record<string, unknown>) {
+    return {
+      ...a,
+      id: String(a._id),
+      livestockId: a.tagId ?? a.livestockId,
+      type: a.type ?? this.buildTypeLabel(a as { breedType?: string; breed?: string; species?: string }),
+      gender: a.sex,
+      obtainedBy: a.obtainedBy,
+      healthStatus: a.healthStatus,
+      lastVeterinaryVisit: a.lastVeterinaryVisit,
+      profileImageUrl: Array.isArray(a.imageUrls) ? a.imageUrls[0] : undefined,
+    };
+  }
+
+  private buildTypeLabel(a: { breedType?: string; breed?: string; species?: string }) {
+    if (a.breedType && a.breed) return `${a.breedType} (${a.breed})`;
+    if (a.species && a.breed) return `${a.species} / ${a.breed}`;
+    return a.breedType ?? a.breed ?? a.species ?? '';
+  }
+
   private async buildFarmerLivestockTable(farmerId: Types.ObjectId, limit: number) {
-    return this.animalModel.aggregate([
+    const rows = await this.animalModel.aggregate([
       { $match: { farmerId } },
       { $sort: { updatedAt: -1 } },
       { $limit: limit },
@@ -408,13 +650,13 @@ export class AnimalService {
       {
         $addFields: {
           livestockId: '$tagId',
-          type: '$species',
           addressLabel: '$pastureOrPen',
           lastVeterinaryVisit: { $arrayElemAt: ['$lastVisit.visitDate', 0] },
         },
       },
       { $project: { lastVisit: 0 } },
     ]);
+    return rows.map((a) => this.mapLivestockListItem(a));
   }
 
   private resolvePeriod(period?: FarmerOverviewQueryDto) {

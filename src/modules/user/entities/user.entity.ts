@@ -10,6 +10,13 @@ import { UserAccountState } from './user-account-state.enum';
 
 export type UserDocument = User & Document;
 
+export enum UserGender {
+  Male = 'male',
+  Female = 'female',
+  Other = 'other',
+  PreferNotToSay = 'prefer_not_to_say',
+}
+
 @Schema({ _id: false })
 export class UserSettings {
   @Prop({ default: true })
@@ -49,6 +56,13 @@ export class User {
 
   @Prop()
   phone?: string;
+
+  @Prop({ enum: Object.values(UserGender) })
+  gender?: UserGender;
+
+  /** Figma: Management level / plan label */
+  @Prop({ default: 'standard' })
+  managementLevel?: string;
 
   /** Street address (vets / operators — Figma profile screens) */
   @Prop()

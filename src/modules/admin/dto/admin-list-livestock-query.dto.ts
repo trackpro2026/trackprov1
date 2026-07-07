@@ -1,13 +1,17 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEnum, IsOptional, IsString } from 'class-validator';
 import { PaginationDto } from '../../../common/dto/pagination.dto';
-import { AnimalHealthStatus, AnimalObtainedBy } from '../../animal/entities/animal.entity';
+import {
+  AnimalHealthStatus,
+  AnimalObtainedBy,
+  AnimalSpecies,
+} from '../../animal/entities/animal.entity';
 
-export class ListOperatorLivestockQueryDto extends PaginationDto {
-  @ApiPropertyOptional({ example: 'cattle' })
+export class AdminListLivestockQueryDto extends PaginationDto {
+  @ApiPropertyOptional({ enum: AnimalSpecies })
   @IsOptional()
-  @IsString()
-  species?: string;
+  @IsEnum(AnimalSpecies)
+  species?: AnimalSpecies;
 
   @ApiPropertyOptional({ enum: AnimalHealthStatus })
   @IsOptional()
@@ -19,7 +23,7 @@ export class ListOperatorLivestockQueryDto extends PaginationDto {
   @IsEnum(AnimalObtainedBy)
   obtainedBy?: AnimalObtainedBy;
 
-  @ApiPropertyOptional({ description: 'Search by livestock ID or animal name' })
+  @ApiPropertyOptional({ description: 'Search tag ID, name, or farmer name' })
   @IsOptional()
   @IsString()
   search?: string;

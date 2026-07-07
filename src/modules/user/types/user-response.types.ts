@@ -2,6 +2,7 @@ import { Role } from '../../../common/decorators/roles.decorator';
 import { UserAccountState } from '../entities/user-account-state.enum';
 import { DoctorStatus } from '../entities/doctor-profile.schema';
 import { SlaughterhouseOperatorStatus } from '../entities/slaughterhouse-profile.schema';
+import { UserGender } from '../entities/user.entity';
 
 export interface SlaughterhouseProfileResponse {
   facilityName?: string;
@@ -44,6 +45,8 @@ export interface UserResponse {
   userState: UserAccountState;
   isEmailVerified?: boolean;
   phone?: string;
+  gender?: UserGender;
+  managementLevel?: string;
   address?: string;
   latitude?: number;
   longitude?: number;
@@ -57,4 +60,12 @@ export interface UserResponse {
   settings?: UserSettingsResponse;
   doctorProfile?: DoctorProfileResponse;
   slaughterhouseProfile?: SlaughterhouseProfileResponse;
+}
+
+/** Figma farmer profile / header — extends base profile with display fields */
+export interface MeResponse extends UserResponse {
+  fullName: string;
+  userId: string;
+  profilePictureUrl?: string;
+  unreadNotificationCount: number;
 }

@@ -16,10 +16,20 @@ export class NotificationController {
   @Get()
   @ApiOperation({
     summary: 'List my notifications',
-    description: 'Figma Notification screens for farmer, vet, slaughterhouse, and admin.',
+    description:
+      'Figma Notification Management: groupedByDate (Today, Yesterday), relativeTime, unreadCount. All roles.',
   })
   list(@CurrentUser('id') userId: string, @Query() pagination: PaginationDto) {
     return this.notificationService.listForUser(userId, pagination);
+  }
+
+  @Get('unread-count')
+  @ApiOperation({
+    summary: 'Unread notification count',
+    description: 'For header bell badge on farmer, vet, slaughterhouse, and admin dashboards.',
+  })
+  unreadCount(@CurrentUser('id') userId: string) {
+    return this.notificationService.countUnread(userId).then((count) => ({ unreadCount: count }));
   }
 
   @Patch('read-all')

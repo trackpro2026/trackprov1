@@ -5,7 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
+import { Model, PipelineStage, Types } from 'mongoose';
 import {
   Slaughterhouse,
   SlaughterhouseDocument,
@@ -24,7 +24,13 @@ import {
   UpdateSlaughterRecordDto,
 } from './dto/slaughterhouse.dto';
 import { PaginationDto } from '../../common/dto/pagination.dto';
-import { Animal, AnimalDocument } from '../animal/entities/animal.entity';
+import {
+  Animal,
+  AnimalDocument,
+  AnimalHealthStatus,
+  AnimalStatus,
+} from '../animal/entities/animal.entity';
+import { AnimalService } from '../animal/animal.service';
 import { Role } from '../../common/decorators/roles.decorator';
 import { SlaughterhouseOperatorStatus } from '../user/entities/slaughterhouse-profile.schema';
 import { CompleteSlaughterhouseProfileDto } from '../user/dto/complete-slaughterhouse-profile.dto';
@@ -34,6 +40,9 @@ import {
   NotificationRelatedType,
   NotificationType,
 } from '../notification/notification.constants';
+import { RecordSlaughterDto } from './dto/record-slaughter.dto';
+import { ListOperatorLivestockQueryDto } from './dto/list-operator-livestock-query.dto';
+
 @Injectable()
 export class SlaughterhouseService {
   constructor(
@@ -44,6 +53,7 @@ export class SlaughterhouseService {
     @InjectModel(Animal.name) private animalModel: Model<AnimalDocument>,
     @InjectModel(User.name) private userModel: Model<UserDocument>,
     private readonly notificationService: NotificationService,
+    private readonly animalService: AnimalService,
   ) {}
 
   async linkFacilityForOperator(operatorId: string, dto: CompleteSlaughterhouseProfileDto) {
@@ -101,52 +111,42 @@ export class SlaughterhouseService {
   async getOperatorOverview(operatorId: string) {
     const facility = await this.getFacilityByOperator(operatorId);
     if (!facility) {
-      return {
-        facility: null,
-        totalCattle: 0,
-        totalGoat: 0,
-        pendingInspections: 0,
-        scheduledToday: 0,
-        processAlerts: [],
-        recentSlaughtered: [],
-        animalsRegisteredTable: [],
-      };
+      return this.emptySlaughterhouseOverview();
     }
 
     const facilityId = facility._id;
+    const completedFilter = {
+      slaughterhouseId: facilityId,
+      status: SlaughterRecordStatus.Completed,
+    };
+
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
     const todayEnd = new Date();
     todayEnd.setHours(23, 59, 59, 999);
 
-    const baseFilter = { slaughterhouseId: facilityId };
-
     const [
-      recentSlaughtered,
-      cattleCount,
-      goatCount,
+      totalLivestockSlaughtered,
+      livestockSlaughteredTable,
+      totalCattle,
+      totalGoat,
       pendingInspections,
       scheduledToday,
-      animalsRegisteredTable,
     ] = await Promise.all([
-      this.recordModel
-        .find(baseFilter)
-        .sort({ scheduledDate: -1 })
-        .limit(10)
-        .lean(),
-      this.recordModel.countDocuments({ ...baseFilter, species: 'cattle' }),
-      this.recordModel.countDocuments({ ...baseFilter, species: 'goat' }),
+      this.recordModel.countDocuments(completedFilter),
+      this.buildSlaughteredLivestockTable(facilityId, 10),
+      this.recordModel.countDocuments({ ...completedFilter, species: 'cattle' }),
+      this.recordModel.countDocuments({ ...completedFilter, species: 'goat' }),
       this.recordModel.countDocuments({
-        ...baseFilter,
+        slaughterhouseId: facilityId,
         inspectionStatus: SlaughterInspectionStatus.Pending,
         status: { $in: [SlaughterRecordStatus.Scheduled, SlaughterRecordStatus.InProgress] },
       }),
       this.recordModel.countDocuments({
-        ...baseFilter,
+        slaughterhouseId: facilityId,
         scheduledDate: { $gte: todayStart, $lte: todayEnd },
         status: SlaughterRecordStatus.Scheduled,
       }),
-      this.buildAnimalsRegisteredTable(facilityId),
     ]);
 
     const processAlerts: { type: string; count: number; message: string }[] = [];
@@ -167,28 +167,154 @@ export class SlaughterhouseService {
 
     return {
       facility,
-      totalCattle: cattleCount,
-      totalGoat: goatCount,
+      summaryCards: { totalLivestockSlaughtered },
+      totalLivestockSlaughtered,
+      livestockSlaughteredTable,
+      recentSlaughtered: livestockSlaughteredTable,
+      animalsRegisteredTable: livestockSlaughteredTable,
+      totalCattle,
+      totalGoat,
       pendingInspections,
       scheduledToday,
       processAlerts,
-      recentSlaughtered,
-      animalsRegisteredTable,
     };
+  }
+
+  async getSlaughterStats(operatorId: string) {
+    const facility = await this.getFacilityByOperator(operatorId);
+    if (!facility) {
+      return { totalLivestockSlaughtered: 0 };
+    }
+    const totalLivestockSlaughtered = await this.recordModel.countDocuments({
+      slaughterhouseId: facility._id,
+      status: SlaughterRecordStatus.Completed,
+    });
+    return { totalLivestockSlaughtered };
+  }
+
+  async scanLivestock(input: { tagId?: string; animalId?: string; qrPayload?: string }) {
+    return this.animalService.lookupLivestockForSlaughterScan(input);
+  }
+
+  async recordSlaughter(operatorId: string, dto: RecordSlaughterDto) {
+    const facility = await this.requireOperatorFacility(operatorId);
+    const animal = await this.animalService.resolveAnimalFromScan({
+      animalId: dto.animalId,
+      tagId: dto.tagId,
+      qrPayload: dto.qrPayload,
+    });
+
+    if (animal.status === AnimalStatus.Slaughtered) {
+      throw new BadRequestException('This livestock has already been slaughtered.');
+    }
+    if (animal.healthStatus !== AnimalHealthStatus.Healthy) {
+      throw new BadRequestException('Livestock must be healthy before it can be slaughtered!');
+    }
+
+    const now = new Date();
+    const record = await this.recordModel.create({
+      animalId: animal._id,
+      farmerId: animal.farmerId,
+      slaughterhouseId: facility._id,
+      animalName: animal.name,
+      species: animal.species,
+      healthStatusLabel: animal.healthStatus,
+      scheduledDate: now,
+      completedDate: now,
+      liveWeightKg: dto.liveWeightKg,
+      carcassWeightKg: dto.carcassWeightKg,
+      anteMortemNotes: dto.anteMortemNotes,
+      inspectionStatus: SlaughterInspectionStatus.Passed,
+      status: SlaughterRecordStatus.Completed,
+    });
+
+    await this.animalModel.findByIdAndUpdate(animal._id, {
+      $set: { status: AnimalStatus.Slaughtered },
+    });
+
+    const recordId = String(record._id);
+    void this.notificationService.notify(String(animal.farmerId), {
+      title: 'Livestock slaughtered',
+      message: `${animal.name} (${animal.tagId}) was slaughtered at ${facility.name}.`,
+      type: NotificationType.Slaughter,
+      relatedId: recordId,
+      relatedType: NotificationRelatedType.SlaughterRecord,
+    });
+
+    return {
+      message: 'Slaughter recorded successfully',
+      recordId,
+      livestockId: animal.tagId,
+      animalId: String(animal._id),
+      slaughteredAt: now,
+    };
+  }
+
+  async getSlaughteredLivestockDetail(operatorId: string, animalId: string) {
+    const facility = await this.requireOperatorFacility(operatorId);
+    const record = await this.recordModel
+      .findOne({
+        animalId: new Types.ObjectId(animalId),
+        slaughterhouseId: facility._id,
+        status: SlaughterRecordStatus.Completed,
+      })
+      .sort({ completedDate: -1 })
+      .lean()
+      .exec();
+    if (!record) {
+      throw new NotFoundException('No slaughter record found for this livestock at your facility');
+    }
+    const detail = await this.animalService.findOneDetailedForSlaughterhouse(animalId);
+    return {
+      ...detail,
+      slaughterRecord: {
+        id: String(record._id),
+        slaughteredAt: record.completedDate ?? record.scheduledDate,
+        liveWeightKg: record.liveWeightKg,
+        carcassWeightKg: record.carcassWeightKg,
+        inspectionStatus: record.inspectionStatus,
+        certificateNumber: record.certificateNumber,
+      },
+    };
+  }
+
+  private emptySlaughterhouseOverview() {
+    return {
+      facility: null,
+      summaryCards: { totalLivestockSlaughtered: 0 },
+      totalLivestockSlaughtered: 0,
+      livestockSlaughteredTable: [],
+      recentSlaughtered: [],
+      animalsRegisteredTable: [],
+      totalCattle: 0,
+      totalGoat: 0,
+      pendingInspections: 0,
+      scheduledToday: 0,
+      processAlerts: [],
+    };
+  }
+
+  private async requireOperatorFacility(operatorId: string) {
+    const facility = await this.getFacilityByOperator(operatorId);
+    if (!facility) {
+      throw new BadRequestException(
+        'Complete your slaughterhouse profile and link a facility before recording slaughter.',
+      );
+    }
+    return facility;
   }
 
   async listOperatorLivestock(
     operatorId: string,
-    pagination: PaginationDto,
-    species?: string,
+    query: ListOperatorLivestockQueryDto,
   ) {
     const facility = await this.getFacilityByOperator(operatorId);
     if (!facility) {
       return { items: [], meta: { total: 0, page: 1, limit: 10, totalPages: 0 } };
     }
 
-    const table = await this.buildAnimalsRegisteredTable(facility._id, species);
-    const { page = 1, limit = 10 } = pagination;
+    const table = await this.buildSlaughteredLivestockTable(facility._id, undefined, query);
+    const { page = 1, limit = 10 } = query;
     const skip = (page - 1) * limit;
     const items = table.slice(skip, skip + limit);
     const total = table.length;
@@ -196,6 +322,119 @@ export class SlaughterhouseService {
       items,
       meta: { total, page, limit, totalPages: Math.ceil(total / limit) || 1 },
     };
+  }
+
+  private async buildSlaughteredLivestockTable(
+    facilityId: Types.ObjectId,
+    limit?: number,
+    query?: ListOperatorLivestockQueryDto,
+  ) {
+    const match: Record<string, unknown> = {
+      slaughterhouseId: facilityId,
+      status: SlaughterRecordStatus.Completed,
+    };
+    if (query?.species) match.species = query.species;
+
+    const pipeline: PipelineStage[] = [
+      { $match: match },
+      { $sort: { completedDate: -1, scheduledDate: -1 } },
+    ];
+    if (limit) pipeline.push({ $limit: limit });
+
+    pipeline.push(
+      {
+        $lookup: {
+          from: 'animals',
+          localField: 'animalId',
+          foreignField: '_id',
+          as: 'animalDoc',
+        },
+      },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'farmerId',
+          foreignField: '_id',
+          as: 'farmerDoc',
+        },
+      },
+      {
+        $lookup: {
+          from: 'healthrecords',
+          let: { aid: '$animalId' },
+          pipeline: [
+            { $match: { $expr: { $eq: ['$animalId', '$$aid'] } } },
+            { $sort: { visitDate: -1 } },
+            { $limit: 1 },
+          ],
+          as: 'lastVisit',
+        },
+      },
+      {
+        $addFields: {
+          livestockId: { $ifNull: [{ $arrayElemAt: ['$animalDoc.tagId', 0] }, '—'] },
+          type: {
+            $let: {
+              vars: {
+                breedType: { $arrayElemAt: ['$animalDoc.breedType', 0] },
+                breed: { $arrayElemAt: ['$animalDoc.breed', 0] },
+                species: { $ifNull: ['$species', { $arrayElemAt: ['$animalDoc.species', 0] }] },
+              },
+              in: {
+                $cond: {
+                  if: { $and: ['$$breedType', '$$breed'] },
+                  then: { $concat: ['$$breedType', ' (', '$$breed', ')'] },
+                  else: {
+                    $cond: {
+                      if: { $and: ['$$species', '$$breed'] },
+                      then: { $concat: ['$$species', ' / ', '$$breed'] },
+                      else: { $ifNull: ['$$breedType', { $ifNull: ['$$breed', '$$species'] }] },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          obtainedBy: { $arrayElemAt: ['$animalDoc.obtainedBy', 0] },
+          registeredBy: { $arrayElemAt: ['$farmerDoc.name', 0] },
+          healthStatus: {
+            $ifNull: [
+              { $arrayElemAt: ['$animalDoc.healthStatus', 0] },
+              '$healthStatusLabel',
+            ],
+          },
+          lastVeterinaryVisit: { $arrayElemAt: ['$lastVisit.visitDate', 0] },
+          slaughteredAt: { $ifNull: ['$completedDate', '$scheduledDate'] },
+          animalId: { $toString: '$animalId' },
+          recordId: { $toString: '$_id' },
+        },
+      },
+      { $project: { animalDoc: 0, farmerDoc: 0, lastVisit: 0 } },
+    );
+
+    let rows = await this.recordModel.aggregate(pipeline);
+
+    if (query?.healthStatus) {
+      rows = rows.filter((r) => r.healthStatus === query.healthStatus);
+    }
+    if (query?.obtainedBy) {
+      rows = rows.filter((r) => r.obtainedBy === query.obtainedBy);
+    }
+    if (query?.search?.trim()) {
+      const term = query.search.trim().toLowerCase();
+      rows = rows.filter(
+        (r) =>
+          String(r.livestockId ?? '').toLowerCase().includes(term) ||
+          String(r.animalName ?? '').toLowerCase().includes(term) ||
+          String(r.registeredBy ?? '').toLowerCase().includes(term),
+      );
+    }
+
+    return rows.map((r) => ({
+      ...r,
+      id: r.animalId,
+      gender: undefined as string | undefined,
+    }));
   }
 
   private async buildAnimalsRegisteredTable(

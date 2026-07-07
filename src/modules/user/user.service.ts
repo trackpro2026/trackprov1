@@ -21,7 +21,7 @@ import { UpdateSettingsDto } from './dto/update-settings.dto';
 import { EncryptionService } from '../../core/encryption/encryption.service';
 import { Role } from '../../common/decorators/roles.decorator';
 import { UserAccountState } from './entities/user-account-state.enum';
-import { DoctorProfileResponse, UserResponse } from './types/user-response.types';
+import { DoctorProfileResponse, MeResponse, UserResponse } from './types/user-response.types';
 import { PaginationDto } from '../../common/dto/pagination.dto';
 import { DoctorProfile, DoctorStatus } from './entities/doctor-profile.schema';
 import { ListDoctorsQueryDto } from './dto/list-doctors-query.dto';
@@ -228,6 +228,21 @@ export class UserService {
     const user = await this.userModel.findById(id).exec();
     if (!user) throw new NotFoundException('User not found');
     return this.toUserResponse(user);
+  }
+
+  /** Figma Profile / header — includes notification badge count and display fields */
+  async findMe(userId: string): Promise<MeResponse> {
+    const user = await this.userModel.findById(userId).exec();
+    if (!user) throw new NotFoundException('User not found');
+    const base = this.toUserResponse(user);
+    const unreadNotificationCount = await this.notificationService.countUnread(userId);
+    return {
+      ...base,
+      fullName: base.name,
+      userId: `U${String(base.id).slice(-6).toUpperCase()}`,
+      profilePictureUrl: base.avatarUrl,
+      unreadNotificationCount,
+    };
   }
 
   async findByEmailAndVerificationOtp(email: string, otp: string) {
@@ -497,6 +512,8 @@ export class UserService {
       userState: user.userState ?? UserAccountState.Active,
       isEmailVerified: user.isEmailVerified,
       phone: user.phone,
+      gender: user.gender,
+      managementLevel: user.managementLevel ?? 'standard',
       address: user.address,
       latitude: user.latitude,
       longitude: user.longitude,

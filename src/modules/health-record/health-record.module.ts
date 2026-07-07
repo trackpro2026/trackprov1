@@ -10,10 +10,12 @@ import {
 import { HealthRecordService } from './health-record.service';
 import { VeterinaryVisitsController } from './veterinary-visits.controller';
 import { NotificationModule } from '../notification/notification.module';
+import { AnimalModule } from '../animal/animal.module';
 
 @Module({
   imports: [
     NotificationModule,
+    AnimalModule,
     MongooseModule.forFeature([
       { name: HealthRecord.name, schema: HealthRecordSchema },
       { name: Animal.name, schema: AnimalSchema },

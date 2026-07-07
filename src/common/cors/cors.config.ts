@@ -17,6 +17,10 @@ export const LOCAL_DEV_CORS_ORIGINS = [
 export const DEFAULT_CORS_ORIGINS = [
   'https://trackpro-web.vercel.app',
   'https://trackpro-admin.vercel.app',
+  'https://admin-trackpro.vercel.app',
+  'https://slaughterhouse-trackpro.vercel.app',
+  'https://farmer-trackpro.vercel.app',
+  'https://vet-trackpro.vercel.app',
   ...LOCAL_DEV_CORS_ORIGINS,
 ] as const;
 

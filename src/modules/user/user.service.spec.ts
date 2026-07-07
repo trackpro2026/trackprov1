@@ -62,7 +62,12 @@ describe('UserService', () => {
         },
         {
           provide: NotificationService,
-          useValue: { notify: jest.fn(), createForUser: jest.fn() },
+          useValue: {
+            notify: jest.fn(),
+            notifyAdmins: jest.fn(),
+            createForUser: jest.fn(),
+            countUnread: jest.fn().mockResolvedValue(0),
+          },
         },
       ],
     }).compile();

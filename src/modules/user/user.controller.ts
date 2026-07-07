@@ -30,7 +30,7 @@ export class UserController {
     description: `${USERS_TAG}\n\n**Read** — Current user (farmer farm fields or doctor profile).`,
   })
   async getProfile(@CurrentUser('id') userId: string) {
-    return this.userService.findById(userId);
+    return this.userService.findMe(userId);
   }
 
   @Public()

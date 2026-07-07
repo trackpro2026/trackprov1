@@ -37,6 +37,17 @@ export class CreateAnimalDto {
   @MaxLength(80)
   breed?: string;
 
+  @ApiPropertyOptional({ example: 'Exotic', description: 'Figma breed type' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(80)
+  breedType?: string;
+
+  @ApiPropertyOptional({ example: '2024-04-18', description: 'Figma date obtained' })
+  @IsOptional()
+  @IsDateString()
+  dateObtained?: string;
+
   @IsOptional()
   @IsEnum(AnimalSex)
   sex?: AnimalSex;

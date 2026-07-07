@@ -48,6 +48,10 @@
       "value": ""
     },
     {
+      "key": "notificationId",
+      "value": ""
+    },
+    {
       "key": "uploadUrl",
       "value": ""
     }
@@ -196,7 +200,7 @@
               "listen": "test",
               "script": {
                 "type": "text/javascript",
-                "exec": "const j = pm.response.json();\nif (j.accessToken) {\n  pm.environment.set('accessToken', j.accessToken);\n  pm.collectionVariables.set('accessToken', j.accessToken);\n}\nif (j.user && j.user.id) {\n  if (j.user.role === 'farmer') {\n    pm.environment.set('farmerId', j.user.id);\n    pm.collectionVariables.set('farmerId', j.user.id);\n  }\n  if (j.user.role === 'doctor') {\n    pm.environment.set('doctorId', j.user.id);\n    pm.collectionVariables.set('doctorId', j.user.id);\n  }\n}"
+                "exec": "const j = pm.response.json();\nif (j.accessToken) {\n  pm.environment.set('accessToken', j.accessToken);\n  pm.collectionVariables.set('accessToken', j.accessToken);\n}\nif (j.user && j.user.id) {\n  if (j.user.role === 'farmer') {\n    pm.environment.set('farmerId', j.user.id);\n    pm.collectionVariables.set('farmerId', j.user.id);\n  }\n  if (j.user.role === 'doctor') {\n    pm.environment.set('doctorId', j.user.id);\n    pm.collectionVariables.set('doctorId', j.user.id);\n  }\n  if (j.user.role === 'slaughterhouse') {\n    pm.environment.set('slaughterhouseId', j.user.id);\n    pm.collectionVariables.set('slaughterhouseId', j.user.id);\n  }\n}"
               }
             }
           ]
@@ -234,7 +238,7 @@
               "listen": "test",
               "script": {
                 "type": "text/javascript",
-                "exec": "const j = pm.response.json();\nif (j.accessToken) {\n  pm.environment.set('accessToken', j.accessToken);\n  pm.collectionVariables.set('accessToken', j.accessToken);\n}\nif (j.user && j.user.id) {\n  if (j.user.role === 'farmer') {\n    pm.environment.set('farmerId', j.user.id);\n    pm.collectionVariables.set('farmerId', j.user.id);\n  }\n  if (j.user.role === 'doctor') {\n    pm.environment.set('doctorId', j.user.id);\n    pm.collectionVariables.set('doctorId', j.user.id);\n  }\n}"
+                "exec": "const j = pm.response.json();\nif (j.accessToken) {\n  pm.environment.set('accessToken', j.accessToken);\n  pm.collectionVariables.set('accessToken', j.accessToken);\n}\nif (j.user && j.user.id) {\n  if (j.user.role === 'farmer') {\n    pm.environment.set('farmerId', j.user.id);\n    pm.collectionVariables.set('farmerId', j.user.id);\n  }\n  if (j.user.role === 'doctor') {\n    pm.environment.set('doctorId', j.user.id);\n    pm.collectionVariables.set('doctorId', j.user.id);\n  }\n  if (j.user.role === 'slaughterhouse') {\n    pm.environment.set('slaughterhouseId', j.user.id);\n    pm.collectionVariables.set('slaughterhouseId', j.user.id);\n  }\n}"
               }
             }
           ]
@@ -272,7 +276,7 @@
               "listen": "test",
               "script": {
                 "type": "text/javascript",
-                "exec": "const j = pm.response.json();\nif (j.accessToken) {\n  pm.environment.set('accessToken', j.accessToken);\n  pm.collectionVariables.set('accessToken', j.accessToken);\n}\nif (j.user && j.user.id) {\n  if (j.user.role === 'farmer') {\n    pm.environment.set('farmerId', j.user.id);\n    pm.collectionVariables.set('farmerId', j.user.id);\n  }\n  if (j.user.role === 'doctor') {\n    pm.environment.set('doctorId', j.user.id);\n    pm.collectionVariables.set('doctorId', j.user.id);\n  }\n}"
+                "exec": "const j = pm.response.json();\nif (j.accessToken) {\n  pm.environment.set('accessToken', j.accessToken);\n  pm.collectionVariables.set('accessToken', j.accessToken);\n}\nif (j.user && j.user.id) {\n  if (j.user.role === 'farmer') {\n    pm.environment.set('farmerId', j.user.id);\n    pm.collectionVariables.set('farmerId', j.user.id);\n  }\n  if (j.user.role === 'doctor') {\n    pm.environment.set('doctorId', j.user.id);\n    pm.collectionVariables.set('doctorId', j.user.id);\n  }\n  if (j.user.role === 'slaughterhouse') {\n    pm.environment.set('slaughterhouseId', j.user.id);\n    pm.collectionVariables.set('slaughterhouseId', j.user.id);\n  }\n}"
               }
             }
           ]
@@ -310,7 +314,7 @@
               "listen": "test",
               "script": {
                 "type": "text/javascript",
-                "exec": "const j = pm.response.json();\nif (j.accessToken) {\n  pm.environment.set('accessToken', j.accessToken);\n  pm.collectionVariables.set('accessToken', j.accessToken);\n}\nif (j.user && j.user.id) {\n  if (j.user.role === 'farmer') {\n    pm.environment.set('farmerId', j.user.id);\n    pm.collectionVariables.set('farmerId', j.user.id);\n  }\n  if (j.user.role === 'doctor') {\n    pm.environment.set('doctorId', j.user.id);\n    pm.collectionVariables.set('doctorId', j.user.id);\n  }\n}"
+                "exec": "const j = pm.response.json();\nif (j.accessToken) {\n  pm.environment.set('accessToken', j.accessToken);\n  pm.collectionVariables.set('accessToken', j.accessToken);\n}\nif (j.user && j.user.id) {\n  if (j.user.role === 'farmer') {\n    pm.environment.set('farmerId', j.user.id);\n    pm.collectionVariables.set('farmerId', j.user.id);\n  }\n  if (j.user.role === 'doctor') {\n    pm.environment.set('doctorId', j.user.id);\n    pm.collectionVariables.set('doctorId', j.user.id);\n  }\n  if (j.user.role === 'slaughterhouse') {\n    pm.environment.set('slaughterhouseId', j.user.id);\n    pm.collectionVariables.set('slaughterhouseId', j.user.id);\n  }\n}"
               }
             }
           ]
@@ -348,7 +352,7 @@
               "listen": "test",
               "script": {
                 "type": "text/javascript",
-                "exec": "const j = pm.response.json();\nif (j.accessToken) {\n  pm.environment.set('accessToken', j.accessToken);\n  pm.collectionVariables.set('accessToken', j.accessToken);\n}\nif (j.user && j.user.id) {\n  if (j.user.role === 'farmer') {\n    pm.environment.set('farmerId', j.user.id);\n    pm.collectionVariables.set('farmerId', j.user.id);\n  }\n  if (j.user.role === 'doctor') {\n    pm.environment.set('doctorId', j.user.id);\n    pm.collectionVariables.set('doctorId', j.user.id);\n  }\n}"
+                "exec": "const j = pm.response.json();\nif (j.accessToken) {\n  pm.environment.set('accessToken', j.accessToken);\n  pm.collectionVariables.set('accessToken', j.accessToken);\n}\nif (j.user && j.user.id) {\n  if (j.user.role === 'farmer') {\n    pm.environment.set('farmerId', j.user.id);\n    pm.collectionVariables.set('farmerId', j.user.id);\n  }\n  if (j.user.role === 'doctor') {\n    pm.environment.set('doctorId', j.user.id);\n    pm.collectionVariables.set('doctorId', j.user.id);\n  }\n  if (j.user.role === 'slaughterhouse') {\n    pm.environment.set('slaughterhouseId', j.user.id);\n    pm.collectionVariables.set('slaughterhouseId', j.user.id);\n  }\n}"
               }
             }
           ]
@@ -387,7 +391,7 @@
               "listen": "test",
               "script": {
                 "type": "text/javascript",
-                "exec": "const j = pm.response.json();\nif (j.accessToken) {\n  pm.environment.set('accessToken', j.accessToken);\n  pm.collectionVariables.set('accessToken', j.accessToken);\n}\nif (j.user && j.user.id) {\n  if (j.user.role === 'farmer') {\n    pm.environment.set('farmerId', j.user.id);\n    pm.collectionVariables.set('farmerId', j.user.id);\n  }\n  if (j.user.role === 'doctor') {\n    pm.environment.set('doctorId', j.user.id);\n    pm.collectionVariables.set('doctorId', j.user.id);\n  }\n}"
+                "exec": "const j = pm.response.json();\nif (j.accessToken) {\n  pm.environment.set('accessToken', j.accessToken);\n  pm.collectionVariables.set('accessToken', j.accessToken);\n}\nif (j.user && j.user.id) {\n  if (j.user.role === 'farmer') {\n    pm.environment.set('farmerId', j.user.id);\n    pm.collectionVariables.set('farmerId', j.user.id);\n  }\n  if (j.user.role === 'doctor') {\n    pm.environment.set('doctorId', j.user.id);\n    pm.collectionVariables.set('doctorId', j.user.id);\n  }\n  if (j.user.role === 'slaughterhouse') {\n    pm.environment.set('slaughterhouseId', j.user.id);\n    pm.collectionVariables.set('slaughterhouseId', j.user.id);\n  }\n}"
               }
             }
           ]
@@ -425,7 +429,7 @@
               "listen": "test",
               "script": {
                 "type": "text/javascript",
-                "exec": "const j = pm.response.json();\nif (j.accessToken) {\n  pm.environment.set('accessToken', j.accessToken);\n  pm.collectionVariables.set('accessToken', j.accessToken);\n}\nif (j.user && j.user.id) {\n  if (j.user.role === 'farmer') {\n    pm.environment.set('farmerId', j.user.id);\n    pm.collectionVariables.set('farmerId', j.user.id);\n  }\n  if (j.user.role === 'doctor') {\n    pm.environment.set('doctorId', j.user.id);\n    pm.collectionVariables.set('doctorId', j.user.id);\n  }\n}"
+                "exec": "const j = pm.response.json();\nif (j.accessToken) {\n  pm.environment.set('accessToken', j.accessToken);\n  pm.collectionVariables.set('accessToken', j.accessToken);\n}\nif (j.user && j.user.id) {\n  if (j.user.role === 'farmer') {\n    pm.environment.set('farmerId', j.user.id);\n    pm.collectionVariables.set('farmerId', j.user.id);\n  }\n  if (j.user.role === 'doctor') {\n    pm.environment.set('doctorId', j.user.id);\n    pm.collectionVariables.set('doctorId', j.user.id);\n  }\n  if (j.user.role === 'slaughterhouse') {\n    pm.environment.set('slaughterhouseId', j.user.id);\n    pm.collectionVariables.set('slaughterhouseId', j.user.id);\n  }\n}"
               }
             }
           ]
@@ -711,8 +715,347 @@
       ]
     },
     {
+      "name": "Farmer Portal",
+      "item": [
+        {
+          "name": "Farmer getMe",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/farmer/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "farmer",
+                "me"
+              ]
+            },
+            "description": "Figma Profile: fullName, userId, profilePictureUrl, unreadNotificationCount."
+          }
+        },
+        {
+          "name": "Farmer Overview",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/farmer/overview?month=5&year=2026",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "farmer",
+                "overview"
+              ],
+              "query": [
+                {
+                  "key": "month",
+                  "value": "5"
+                },
+                {
+                  "key": "year",
+                  "value": "2026"
+                }
+              ]
+            },
+            "description": "Figma Overview: summaryCards, livestockTable."
+          }
+        },
+        {
+          "name": "Farmer Livestock Stats",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/farmer/livestock/stats",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "farmer",
+                "livestock",
+                "stats"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
       "name": "Doctor Portal",
       "item": [
+        {
+          "name": "Doctor getMe",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/doctor/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "doctor",
+                "me"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Doctor Overview",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/doctor/overview?month=5&year=2026",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "doctor",
+                "overview"
+              ],
+              "query": [
+                {
+                  "key": "month",
+                  "value": "5"
+                },
+                {
+                  "key": "year",
+                  "value": "2026"
+                }
+              ]
+            },
+            "description": "Figma: summaryCards + veterinaryVisitsTable."
+          }
+        },
+        {
+          "name": "Doctor Visit Stats",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/doctor/visits/stats",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "doctor",
+                "visits",
+                "stats"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Doctor Visits",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/doctor/visits?page=1&limit=10&search=checkup",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "doctor",
+                "visits"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "search",
+                  "value": "checkup"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Doctor Visit Detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/doctor/visits/{{healthRecordId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "doctor",
+                "visits",
+                "{{healthRecordId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Scan Livestock (Add Visit)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/doctor/livestock/scan?tagId=EAR-001",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "doctor",
+                "livestock",
+                "scan"
+              ],
+              "query": [
+                {
+                  "key": "tagId",
+                  "value": "EAR-001"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Record Visit (Submit Result)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/doctor/visits",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "doctor",
+                "visits"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"animalId\": \"{{animalId}}\",\n  \"visitDate\": \"2026-05-17T12:00:00.000Z\",\n  \"type\": \"checkup\",\n  \"summary\": \"Routine checkup — animal healthy\",\n  \"healthStatus\": \"healthy\",\n  \"status\": \"completed\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": "const j = pm.response.json();\nconst id = j._id || j.id || j.visitId || (j.record && j.record._id);\nif (id) {\n  pm.environment.set('healthRecordId', id);\n  pm.collectionVariables.set('healthRecordId', id);\n}"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Doctor Analytics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/doctor/analytics?months=6",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "doctor",
+                "analytics"
+              ],
+              "query": [
+                {
+                  "key": "months",
+                  "value": "6"
+                }
+              ]
+            }
+          }
+        },
         {
           "name": "Complete Profile",
           "request": {
@@ -779,7 +1122,7 @@
             "description": "Farmer role only.",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"tagId\": \"EAR-001\",\n  \"name\": \"Bessie\",\n  \"species\": \"cattle\",\n  \"breed\": \"Angus\",\n  \"sex\": \"female\",\n  \"weightKg\": 450,\n  \"healthStatus\": \"healthy\",\n  \"assignedDoctorId\": \"{{doctorId}}\"\n}"
+              "raw": "{\n  \"tagId\": \"EAR-001\",\n  \"name\": \"Bessie\",\n  \"species\": \"cattle\",\n  \"breed\": \"Angus\",\n  \"breedType\": \"Exotic\",\n  \"dateObtained\": \"2024-04-18\",\n  \"obtainedBy\": \"native\",\n  \"sex\": \"female\",\n  \"weightKg\": 450,\n  \"healthStatus\": \"healthy\",\n  \"assignedDoctorId\": \"{{doctorId}}\"\n}"
             }
           },
           "event": [
@@ -878,6 +1221,91 @@
           }
         },
         {
+          "name": "Get QR Code (PNG data URL)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/livestock/{{animalId}}/qr-code",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "livestock",
+                "{{animalId}}",
+                "qr-code"
+              ]
+            },
+            "description": "Returns qrPayload + qrCodeDataUrl (base64 PNG) for Figma QR display."
+          }
+        },
+        {
+          "name": "Transfer Livestock",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/livestock/{{animalId}}/transfer",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "livestock",
+                "{{animalId}}",
+                "transfer"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"receiverFirstName\": \"Jane\",\n  \"receiverLastName\": \"Doe\",\n  \"receiverPhone\": \"+2349012345678\",\n  \"receiverEmail\": \"jane@farm.com\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Mark Slaughtered",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/livestock/{{animalId}}/slaughter",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "livestock",
+                "{{animalId}}",
+                "slaughter"
+              ]
+            },
+            "description": "Farmer marks livestock as slaughtered (Figma)."
+          }
+        },
+        {
           "name": "Update Livestock",
           "request": {
             "method": "PATCH",
@@ -973,7 +1401,7 @@
               "listen": "test",
               "script": {
                 "type": "text/javascript",
-                "exec": "const j = pm.response.json();\nconst id = j._id || j.id;\nif (id) {\n  pm.environment.set('healthRecordId', id);\n  pm.collectionVariables.set('healthRecordId', id);\n}"
+                "exec": "const j = pm.response.json();\nconst id = j._id || j.id || j.visitId || (j.record && j.record._id);\nif (id) {\n  pm.environment.set('healthRecordId', id);\n  pm.collectionVariables.set('healthRecordId', id);\n}"
               }
             }
           ]
@@ -1253,6 +1681,65 @@
                   "value": "20"
                 }
               ]
+            },
+            "description": "Grouped by date with relativeTime and unreadCount."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": "const j = pm.response.json();\nconst items = j.items || j.data || j.notifications || [];\nconst first = Array.isArray(items) ? items[0] : null;\nconst id = first && (first._id || first.id);\nif (id) {\n  pm.environment.set('notificationId', id);\n  pm.collectionVariables.set('notificationId', id);\n}"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Unread Count",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/notifications/unread-count",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "notifications",
+                "unread-count"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Mark Notification Read",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/notifications/{{notificationId}}/read",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "notifications",
+                "{{notificationId}}",
+                "read"
+              ]
             }
           }
         },
@@ -1473,7 +1960,120 @@
                 "overview"
               ]
             },
-            "description": "Figma overview: processAlerts, animalsRegisteredTable."
+            "description": "Figma overview: totalLivestockSlaughtered, livestockSlaughteredTable."
+          }
+        },
+        {
+          "name": "Slaughterhouse getMe",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/slaughterhouse/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "slaughterhouse",
+                "me"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Slaughterhouse Livestock Stats",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/slaughterhouse/livestock/stats",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "slaughterhouse",
+                "livestock",
+                "stats"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Scan Livestock (QR)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/slaughterhouse/livestock/scan?tagId=EAR-001",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "slaughterhouse",
+                "livestock",
+                "scan"
+              ],
+              "query": [
+                {
+                  "key": "tagId",
+                  "value": "EAR-001"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Record Slaughter",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/slaughterhouse/livestock/slaughter",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "slaughterhouse",
+                "livestock",
+                "slaughter"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"animalId\": \"{{animalId}}\",\n  \"liveWeightKg\": 450\n}"
+            }
           }
         },
         {
@@ -1506,6 +2106,31 @@
                   "key": "limit",
                   "value": "10"
                 }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Slaughterhouse Livestock Detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/slaughterhouse/livestock/{{animalId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "slaughterhouse",
+                "livestock",
+                "{{animalId}}"
               ]
             }
           }
@@ -1916,6 +2541,30 @@
       "name": "Admin",
       "item": [
         {
+          "name": "Admin getMe",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "me"
+              ]
+            }
+          }
+        },
+        {
           "name": "Admin Overview",
           "request": {
             "method": "GET",
@@ -1964,7 +2613,7 @@
           }
         },
         {
-          "name": "Livestock Stats",
+          "name": "Farmer Stats",
           "request": {
             "method": "GET",
             "header": [
@@ -1974,7 +2623,7 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/admin/livestock/stats",
+              "raw": "{{baseUrl}}/api/v1/admin/farmers/stats",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -1982,135 +2631,8 @@
                 "api",
                 "v1",
                 "admin",
-                "livestock",
+                "farmers",
                 "stats"
-              ]
-            }
-          }
-        },
-        {
-          "name": "List Livestock",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{accessToken}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/admin/livestock?page=1&limit=10",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "admin",
-                "livestock"
-              ],
-              "query": [
-                {
-                  "key": "page",
-                  "value": "1"
-                },
-                {
-                  "key": "limit",
-                  "value": "10"
-                }
-              ]
-            }
-          }
-        },
-        {
-          "name": "Visit Stats",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{accessToken}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/admin/veterinary-visits/stats",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "admin",
-                "veterinary-visits",
-                "stats"
-              ]
-            }
-          }
-        },
-        {
-          "name": "List Veterinary Visits",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{accessToken}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/admin/veterinary-visits?page=1&limit=10",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "admin",
-                "veterinary-visits"
-              ],
-              "query": [
-                {
-                  "key": "page",
-                  "value": "1"
-                },
-                {
-                  "key": "limit",
-                  "value": "10"
-                }
-              ]
-            }
-          }
-        },
-        {
-          "name": "List Slaughterhouses",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{accessToken}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/admin/slaughterhouses?page=1&limit=10",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "admin",
-                "slaughterhouses"
-              ],
-              "query": [
-                {
-                  "key": "page",
-                  "value": "1"
-                },
-                {
-                  "key": "limit",
-                  "value": "10"
-                }
               ]
             }
           }
@@ -2175,6 +2697,199 @@
           }
         },
         {
+          "name": "Livestock Stats",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/livestock/stats",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "livestock",
+                "stats"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Livestock",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/livestock?page=1&limit=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "livestock"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Livestock Detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/livestock/{{animalId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "livestock",
+                "{{animalId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Slaughterhouse Stats",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/slaughterhouses/stats",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "slaughterhouses",
+                "stats"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Slaughterhouses",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/slaughterhouses?page=1&limit=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "slaughterhouses"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Slaughterhouse Detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/slaughterhouses/{{slaughterhouseId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "slaughterhouses",
+                "{{slaughterhouseId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Doctor Stats",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/doctors/stats",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "doctors",
+                "stats"
+              ]
+            }
+          }
+        },
+        {
           "name": "List Doctors",
           "request": {
             "method": "GET",
@@ -2229,6 +2944,124 @@
                 "admin",
                 "doctors",
                 "{{doctorId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Visit Stats",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/veterinary-visits/stats",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "veterinary-visits",
+                "stats"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Veterinary Visits",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/veterinary-visits?page=1&limit=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "veterinary-visits"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Visit Detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/veterinary-visits/{{healthRecordId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "veterinary-visits",
+                "{{healthRecordId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Slaughterhouse Operators",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/slaughterhouse-operators?page=1&limit=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "slaughterhouse-operators"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
               ]
             }
           }
