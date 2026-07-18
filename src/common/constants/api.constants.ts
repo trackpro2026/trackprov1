@@ -11,7 +11,10 @@ export const API_PREFIX_EXCLUDES = [
   { path: '', method: RequestMethod.GET },
   { path: 'health', method: RequestMethod.GET },
   { path: 'forgot-password', method: RequestMethod.GET },
-  { path: SWAGGER_PATH, method: RequestMethod.GET },
-  { path: `${SWAGGER_PATH}-json`, method: RequestMethod.GET },
-  { path: `${SWAGGER_PATH}-yaml`, method: RequestMethod.GET },
+  // Swagger UI + static assets (css/js) — must exclude ALL methods and nested paths
+  // or the global `api/v1` prefix breaks docs and the page appears blank.
+  { path: SWAGGER_PATH, method: RequestMethod.ALL },
+  { path: `${SWAGGER_PATH}/(.*)`, method: RequestMethod.ALL },
+  { path: `${SWAGGER_PATH}-json`, method: RequestMethod.ALL },
+  { path: `${SWAGGER_PATH}-yaml`, method: RequestMethod.ALL },
 ];
